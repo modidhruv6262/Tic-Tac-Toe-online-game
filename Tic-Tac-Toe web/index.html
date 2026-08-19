@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Private Tic-Tac-Toe</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <h1>Tic-Tac-Toe</h1>
+    
+    <!-- LOBBY SCREEN -->
+    <div id="lobby">
+        <button id="createBtn">Create New Game</button>
+        <p>OR</p>
+        <input type="text" id="codeInput" placeholder="Enter 5-digit code" maxlength="5">
+        <button id="joinBtn">Join Game</button>
+        <h3 id="lobbyMessage"></h3>
+    </div>
+
+    <!-- GAME SCREEN (Hidden by default) -->
+    <div id="gameArea" class="hidden">
+        <h3 id="roomDisplay"></h3>
+        <h2 id="statusText">Waiting for friend to join...</h2>
+        
+        <div id="board" class="board">
+            <div class="cell" data-index="0"></div>
+            <div class="cell" data-index="1"></div>
+            <div class="cell" data-index="2"></div>
+            <div class="cell" data-index="3"></div>
+            <div class="cell" data-index="4"></div>
+            <div class="cell" data-index="5"></div>
+            <div class="cell" data-index="6"></div>
+            <div class="cell" data-index="7"></div>
+            <div class="cell" data-index="8"></div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
