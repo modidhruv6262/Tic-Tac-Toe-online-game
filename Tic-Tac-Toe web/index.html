@@ -34,28 +34,31 @@
 
         <h2 id="statusText">Waiting for friend to join...</h2>
         
-        <div id="board" class="board">
-            <div id="strike" class="strike hidden"></div>
-            <div class="cell" data-index="0"></div>
-            <div class="cell" data-index="1"></div>
-            <div class="cell" data-index="2"></div>
-            <div class="cell" data-index="3"></div>
-            <div class="cell" data-index="4"></div>
-            <div class="cell" data-index="5"></div>
-            <div class="cell" data-index="6"></div>
-            <div class="cell" data-index="7"></div>
-            <div class="cell" data-index="8"></div>
-        </div>
-
-        <!-- NEW: CHAT BOX -->
-        <div id="chatBox" class="glass-card hidden">
-            <div id="chatMessages"></div>
-            <div class="chat-input-area">
-                <input type="text" id="chatInput" placeholder="Type a message..." maxlength="100">
-                <button id="sendChatBtn">Send</button>
+        <!-- NEW WRAPPER: Holds Board and Chat side-by-side on desktop -->
+        <div id="gameLayout">
+            
+            <div id="board" class="board">
+                <div id="strike" class="strike hidden"></div>
+                <div class="cell" data-index="0"></div>
+                <div class="cell" data-index="1"></div>
+                <div class="cell" data-index="2"></div>
+                <div class="cell" data-index="3"></div>
+                <div class="cell" data-index="4"></div>
+                <div class="cell" data-index="5"></div>
+                <div class="cell" data-index="6"></div>
+                <div class="cell" data-index="7"></div>
+                <div class="cell" data-index="8"></div>
             </div>
-        </div>
 
+            <div id="chatBox" class="glass-card hidden">
+                <div id="chatMessages"></div>
+                <div class="chat-input-area">
+                    <input type="text" id="chatInput" placeholder="Type a message..." maxlength="100">
+                    <button id="sendChatBtn">Send</button>
+                </div>
+            </div>
+
+        </div>
     </div>
 
     <script src="script.js"></script>

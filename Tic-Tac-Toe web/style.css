@@ -1,8 +1,7 @@
 @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;800&display=swap');
 
-/* --- GLOBAL RESPONSIVE SETTINGS --- */
 * {
-    box-sizing: border-box; /* Prevents padding from breaking widths */
+    box-sizing: border-box; 
 }
 
 body {
@@ -16,8 +15,8 @@ body {
     color: white;
     margin: 0;
     min-height: 100vh;
-    padding: 5vh 15px; /* Use viewport height for padding */
-    overflow-x: hidden; /* Prevents horizontal scrolling on small phones */
+    padding: 5vh 15px; 
+    overflow-x: hidden; 
 }
 
 @keyframes gradientBG {
@@ -26,9 +25,8 @@ body {
     100% { background-position: 0% 50%; }
 }
 
-/* Fluid Typography */
 h1 {
-    font-size: clamp(2rem, 8vw, 3rem); /* Dynamically shrinks on small phones */
+    font-size: clamp(2rem, 8vw, 3rem); 
     text-transform: uppercase;
     letter-spacing: 3px;
     text-shadow: 0 0 15px rgba(0, 229, 255, 0.7);
@@ -36,7 +34,6 @@ h1 {
     text-align: center;
 }
 
-/* Shared card class for Name Screen and Lobby */
 .glass-card {
     display: flex;
     flex-direction: column;
@@ -50,12 +47,12 @@ h1 {
     border: 1px solid rgba(255, 255, 255, 0.1);
     margin-top: 20px;
     width: 100%;
-    max-width: 400px; /* Won't get wider than this on desktop */
+    max-width: 400px; 
     text-align: center;
 }
 
 input {
-    width: 100%; /* Fills the card perfectly */
+    width: 100%; 
     padding: 12px;
     font-size: 1.2rem;
     text-align: center;
@@ -113,27 +110,36 @@ button:hover {
     box-shadow: 0 8px 20px rgba(255, 0, 122, 0.6);
 }
 
+/* Widen the game area to allow side-by-side elements */
 #gameArea {
     display: flex;
     flex-direction: column;
     align-items: center;
     width: 100%;
-    max-width: 450px;
+    max-width: 900px; 
     text-align: center;
 }
 
 #gameControls {
     display: flex;
     gap: 15px;
-    margin-bottom: 20px;
+    margin-bottom: 10px;
     justify-content: center;
     width: 100%;
 }
 
-/* --- THE FULLY RESPONSIVE BOARD --- */
+/* --- NEW: THE FLEXIBLE GAME LAYOUT --- */
+#gameLayout {
+    display: flex;
+    flex-direction: column; /* Stacks on mobile by default */
+    align-items: center;
+    width: 100%;
+    gap: 20px;
+    margin-top: 10px;
+}
+
 .board {
     display: grid;
-    /* Uses fractions (fr) so the columns adapt perfectly to any screen */
     grid-template-columns: repeat(3, 1fr);
     grid-template-rows: repeat(3, 1fr);
     grid-gap: 10px;
@@ -143,19 +149,14 @@ button:hover {
     backdrop-filter: blur(10px);
     box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
     border: 1px solid rgba(255, 255, 255, 0.1);
-    margin-top: 20px;
+    margin-top: 0; /* Let flex gap handle spacing */
     position: relative; 
-    
-    /* This makes sure the board never breaks the screen width */
     width: 90vw;
     max-width: 380px; 
-    
-    /* Forces the board to stay a perfect square! */
     aspect-ratio: 1 / 1; 
 }
 
 .cell {
-    /* Fills the grid cell perfectly */
     width: 100%;
     height: 100%;
     background: rgba(255, 255, 255, 0.08);
@@ -163,7 +164,7 @@ button:hover {
     display: flex;
     justify-content: center;
     align-items: center;
-    font-size: clamp(2.5rem, 10vw, 4rem); /* Text scales with the box */
+    font-size: clamp(2.5rem, 10vw, 4rem); 
     font-weight: 800;
     cursor: pointer;
     transition: all 0.2s ease;
@@ -175,8 +176,6 @@ button:hover {
     transform: scale(1.05);
 }
 
-/* --- THE PERCENTAGE-BASED STRIKE LINE --- */
-/* No more pixels! Percentages scale flawlessly on any device */
 .strike {
     position: absolute;
     z-index: 10;
@@ -187,11 +186,9 @@ button:hover {
 .strike.row-1 { top: 16.6%; left: 5%; width: 90%; height: 8px; margin-top: -4px; }
 .strike.row-2 { top: 50%; left: 5%; width: 90%; height: 8px; margin-top: -4px; }
 .strike.row-3 { top: 83.3%; left: 5%; width: 90%; height: 8px; margin-top: -4px; }
-
 .strike.col-1 { left: 16.6%; top: 5%; height: 90%; width: 8px; margin-left: -4px; }
 .strike.col-2 { left: 50%; top: 5%; height: 90%; width: 8px; margin-left: -4px; }
 .strike.col-3 { left: 83.3%; top: 5%; height: 90%; width: 8px; margin-left: -4px; }
-
 .strike.diag-1 { top: 50%; left: -10%; width: 120%; height: 8px; margin-top: -4px; transform: rotate(45deg); }
 .strike.diag-2 { top: 50%; left: -10%; width: 120%; height: 8px; margin-top: -4px; transform: rotate(-45deg); }
 
@@ -201,9 +198,9 @@ button:hover {
 #lobbyMessage { font-size: 1rem; color: #ff4b2b; }
 .hidden { display: none !important; }
 
-/* --- CHAT SYSTEM STYLES --- */
+/* CHAT BOX (Mobile Defaults) */
 #chatBox {
-    margin-top: 20px;
+    margin-top: 0; /* Let flex gap handle spacing */
     padding: 20px;
     width: 90vw;
     max-width: 380px; 
@@ -216,7 +213,7 @@ button:hover {
     background: rgba(0, 0, 0, 0.2);
     border-radius: 10px;
     padding: 10px;
-    overflow-y: auto; /* Adds scrollbar if messages fill up */
+    overflow-y: auto; 
     display: flex;
     flex-direction: column;
     gap: 8px;
@@ -224,24 +221,10 @@ button:hover {
     box-shadow: inset 0 0 10px rgba(0,0,0,0.3);
 }
 
-.chat-message {
-    font-size: 0.95rem;
-    word-wrap: break-word;
-    color: #eee;
-}
+.chat-message { font-size: 0.95rem; word-wrap: break-word; color: #eee; }
+.chat-sender { font-weight: 800; color: #00e5ff; }
+.chat-input-area { display: flex; gap: 10px; width: 100%; }
 
-.chat-sender {
-    font-weight: 800;
-    color: #00e5ff;
-}
-
-.chat-input-area {
-    display: flex;
-    gap: 10px;
-    width: 100%;
-}
-
-/* Overriding the lobby input styles specifically for chat */
 #chatInput {
     flex: 1;
     font-size: 1rem;
@@ -250,8 +233,26 @@ button:hover {
     text-transform: none; 
 }
 
-#sendChatBtn {
-    width: auto;
-    padding: 10px 15px;
-    font-size: 0.9rem;
+#sendChatBtn { width: auto; padding: 10px 15px; font-size: 0.9rem; }
+
+
+/* --- MAGIC HAPPENS HERE: DESKTOP LAYOUT --- */
+@media (min-width: 800px) {
+    #gameLayout {
+        flex-direction: row; /* Puts board and chat side-by-side */
+        align-items: flex-start;
+        justify-content: center;
+        gap: 40px; /* Nice wide gap between board and chat */
+    }
+
+    #chatBox {
+        height: 380px; /* Matches the exact max height of the board */
+        display: flex;
+        flex-direction: column;
+    }
+
+    #chatMessages {
+        flex-grow: 1; /* Automatically stretches to fill the vertical space */
+        height: auto;
+    }
 }
