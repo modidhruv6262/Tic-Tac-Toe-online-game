@@ -5,7 +5,6 @@ import json
 import random
 import string
 
-# We now use a list to keep track of player order [player1, player2]
 rooms = {}
 player_rooms = {}
 
@@ -20,18 +19,16 @@ async def game_handler(websocket):
 
             if action == "create":
                 room_code = generate_code()
-                rooms[room_code] = [websocket]  # Player 1 is first in the list
+                rooms[room_code] = [websocket]  
                 player_rooms[websocket] = room_code
-                
                 await websocket.send(json.dumps({"type": "room_created", "room": room_code}))
                 
             elif action == "join":
                 room_code = data.get("room").upper()
                 if room_code in rooms and len(rooms[room_code]) == 1:
-                    rooms[room_code].append(websocket) # Player 2 joins the list
+                    rooms[room_code].append(websocket) 
                     player_rooms[websocket] = room_code
                     
-                    # Assign roles: Player 1 gets 'X', Player 2 gets 'O'
                     player1 = rooms[room_code][0]
                     player2 = rooms[room_code][1]
                     
@@ -49,7 +46,29 @@ async def game_handler(websocket):
                             "index": data.get("index"),
                             "symbol": data.get("symbol")
                         }))
-                        
+            
+            # --- NEW LOGIC: Restart Game ---
+            elif action == "restart":
+                room_code = player_rooms.get(websocket)
+                if room_code in rooms:
+                    for ws in rooms[room_code]:
+                        await ws.send(json.dumps({"type": "restart"}))
+            
+            # --- NEW LOGIC: Exit Room ---
+            elif action == "leave":
+                room_code = player_rooms.get(websocket)
+                if room_code:
+                    if websocket in rooms.get(room_code, []):
+                        rooms[room_code].remove(websocket)
+                    
+                    if len(rooms[room_code]) == 0:
+                        del rooms[room_code]
+                    else:
+                        for ws in rooms[room_code]:
+                            await ws.send(json.dumps({"type": "player_left"}))
+                    
+                    del player_rooms[websocket]
+
     except websockets.exceptions.ConnectionClosed:
         pass
     finally:

@@ -1,8 +1,8 @@
-// Connected to your live Render server!
 const socket = new WebSocket('wss://tic-tac-toe-online-game-wokq.onrender.com');
 
 const lobby = document.getElementById('lobby');
 const gameArea = document.getElementById('gameArea');
+const gameControls = document.getElementById('gameControls');
 const createBtn = document.getElementById('createBtn');
 const joinBtn = document.getElementById('joinBtn');
 const codeInput = document.getElementById('codeInput');
@@ -11,10 +11,21 @@ const statusText = document.getElementById('statusText');
 const roomDisplay = document.getElementById('roomDisplay');
 const cells = document.querySelectorAll('.cell');
 
+// New Buttons
+const restartBtn = document.getElementById('restartBtn');
+const exitBtn = document.getElementById('exitBtn');
+
 let currentSymbol = 'X'; 
-let myRole = ''; // This will store whether I am 'X' or 'O'
+let myRole = ''; 
 let gameActive = false; 
 let myRoomCode = '';
+
+// --- NEW FUNCTION: Clears the board ---
+function resetBoard() {
+    cells.forEach(cell => cell.innerText = "");
+    currentSymbol = 'X';
+    gameActive = true;
+}
 
 createBtn.addEventListener('click', () => {
     socket.send(JSON.stringify({ action: "create" }));
@@ -29,6 +40,27 @@ joinBtn.addEventListener('click', () => {
     }
 });
 
+// --- NEW LOGIC: Restart and Exit Buttons ---
+restartBtn.addEventListener('click', () => {
+    if (gameActive || statusText.innerText.includes("Wins") || statusText.innerText.includes("Draw")) {
+        socket.send(JSON.stringify({ action: "restart" }));
+    }
+});
+
+exitBtn.addEventListener('click', () => {
+    socket.send(JSON.stringify({ action: "leave" }));
+    
+    // Hide game area, go back to lobby
+    gameArea.classList.add('hidden');
+    lobby.classList.remove('hidden');
+    gameControls.classList.add('hidden');
+    codeInput.value = '';
+    lobbyMessage.innerText = '';
+    myRoomCode = '';
+    myRole = '';
+    gameActive = false;
+});
+
 socket.onmessage = (event) => {
     const data = JSON.parse(event.data);
 
@@ -36,23 +68,30 @@ socket.onmessage = (event) => {
         myRoomCode = data.room;
         lobby.classList.add('hidden');
         gameArea.classList.remove('hidden');
+        gameControls.classList.add('hidden'); // Hide controls until friend joins
         roomDisplay.innerText = `Room Code: ${myRoomCode}`;
         statusText.innerText = "Waiting for friend to join...";
     }
     
     else if (data.type === "game_start") {
         myRoomCode = data.room;
-        myRole = data.role; // The server tells you if you are X or O!
+        myRole = data.role; 
         
         lobby.classList.add('hidden');
         gameArea.classList.remove('hidden');
+        gameControls.classList.remove('hidden'); // Show controls!
         
-        // Update the display so you know who you are
         roomDisplay.innerText = `Room: ${myRoomCode} | You are Player ${myRole}`;
-        
-        // If I am X, tell me it's my turn. If I am O, tell me it's X's turn.
         statusText.innerText = myRole === 'X' ? "Game Started! Your turn." : "Game Started! Player X's turn.";
-        gameActive = true; 
+        
+        // This fixes the bug where a rejoining player sees a blank board but you see the old one!
+        resetBoard(); 
+    }
+    
+    // --- NEW LOGIC: Catch Restart Signal ---
+    else if (data.type === "restart") {
+        resetBoard();
+        statusText.innerText = myRole === 'X' ? "Game Restarted! Your turn." : "Game Restarted! Player X's turn.";
     }
     
     else if (data.type === "error") {
@@ -60,8 +99,9 @@ socket.onmessage = (event) => {
     }
     
     else if (data.type === "player_left") {
-        statusText.innerText = "Your friend disconnected. Game over.";
-        gameActive = false;
+        statusText.innerText = "Other player disconnected. Game paused.";
+        gameActive = false; // Prevents you from clicking the board
+        gameControls.classList.add('hidden'); // Hide restart, keep exit
     }
     
     else if (data.type === "move") {
@@ -69,7 +109,6 @@ socket.onmessage = (event) => {
         currentSymbol = data.symbol === 'X' ? 'O' : 'X';
         
         if (gameActive) {
-            // Personalize the turn message
             if (currentSymbol === myRole) {
                 statusText.innerText = "Your turn!";
             } else {
@@ -113,7 +152,6 @@ function checkWin() {
 
 cells.forEach(cell => {
     cell.addEventListener('click', () => {
-        // Only allow clicking if the cell is empty AND game is active AND it is my turn!
         if (cell.innerText === "" && gameActive && currentSymbol === myRole) {
             const moveData = { 
                 action: "move", 

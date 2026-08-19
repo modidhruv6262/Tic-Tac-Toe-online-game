@@ -60,3 +60,10 @@ input {
 .hidden {
     display: none !important;
 }
+
+#gameControls {
+    display: flex;
+    gap: 15px;
+    margin-bottom: 20px;
+    justify-content: center;
+}
