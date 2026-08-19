@@ -1,5 +1,10 @@
 @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;800&display=swap');
 
+/* --- GLOBAL RESPONSIVE SETTINGS --- */
+* {
+    box-sizing: border-box; /* Prevents padding from breaking widths */
+}
+
 body {
     font-family: 'Poppins', sans-serif;
     display: flex;
@@ -11,7 +16,8 @@ body {
     color: white;
     margin: 0;
     min-height: 100vh;
-    padding-top: 40px;
+    padding: 5vh 15px; /* Use viewport height for padding */
+    overflow-x: hidden; /* Prevents horizontal scrolling on small phones */
 }
 
 @keyframes gradientBG {
@@ -20,12 +26,14 @@ body {
     100% { background-position: 0% 50%; }
 }
 
+/* Fluid Typography */
 h1 {
-    font-size: 3rem;
+    font-size: clamp(2rem, 8vw, 3rem); /* Dynamically shrinks on small phones */
     text-transform: uppercase;
     letter-spacing: 3px;
     text-shadow: 0 0 15px rgba(0, 229, 255, 0.7);
     margin-bottom: 10px;
+    text-align: center;
 }
 
 /* Shared card class for Name Screen and Lobby */
@@ -36,19 +44,23 @@ h1 {
     gap: 15px;
     background: rgba(255, 255, 255, 0.05);
     backdrop-filter: blur(15px);
-    padding: 40px 50px;
+    padding: 30px 20px;
     border-radius: 20px;
     box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
     border: 1px solid rgba(255, 255, 255, 0.1);
     margin-top: 20px;
+    width: 100%;
+    max-width: 400px; /* Won't get wider than this on desktop */
+    text-align: center;
 }
 
 input {
+    width: 100%; /* Fills the card perfectly */
     padding: 12px;
-    font-size: 1.5rem;
+    font-size: 1.2rem;
     text-align: center;
     text-transform: uppercase;
-    letter-spacing: 5px;
+    letter-spacing: 3px;
     border: none;
     border-radius: 10px;
     background: rgba(255, 255, 255, 0.1);
@@ -61,7 +73,7 @@ input {
 input::placeholder {
     color: rgba(255, 255, 255, 0.4);
     letter-spacing: normal;
-    font-size: 1.2rem;
+    font-size: 1rem;
 }
 
 input:focus {
@@ -70,8 +82,10 @@ input:focus {
 }
 
 button {
-    padding: 12px 25px;
-    font-size: 1.1rem;
+    width: 100%;
+    max-width: 250px;
+    padding: 12px 20px;
+    font-size: 1rem;
     font-weight: 600;
     cursor: pointer;
     background: linear-gradient(45deg, #00e5ff, #0077ff);
@@ -104,7 +118,7 @@ button:hover {
     flex-direction: column;
     align-items: center;
     width: 100%;
-    max-width: 450px; 
+    max-width: 450px;
     text-align: center;
 }
 
@@ -113,11 +127,15 @@ button:hover {
     gap: 15px;
     margin-bottom: 20px;
     justify-content: center;
+    width: 100%;
 }
 
+/* --- THE FULLY RESPONSIVE BOARD --- */
 .board {
     display: grid;
-    grid-template-columns: repeat(3, 110px);
+    /* Uses fractions (fr) so the columns adapt perfectly to any screen */
+    grid-template-columns: repeat(3, 1fr);
+    grid-template-rows: repeat(3, 1fr);
     grid-gap: 10px;
     background: rgba(255, 255, 255, 0.05);
     padding: 15px;
@@ -127,17 +145,25 @@ button:hover {
     border: 1px solid rgba(255, 255, 255, 0.1);
     margin-top: 20px;
     position: relative; 
+    
+    /* This makes sure the board never breaks the screen width */
+    width: 90vw;
+    max-width: 380px; 
+    
+    /* Forces the board to stay a perfect square! */
+    aspect-ratio: 1 / 1; 
 }
 
 .cell {
-    width: 110px;
-    height: 110px;
+    /* Fills the grid cell perfectly */
+    width: 100%;
+    height: 100%;
     background: rgba(255, 255, 255, 0.08);
     border-radius: 15px;
     display: flex;
     justify-content: center;
     align-items: center;
-    font-size: 4rem;
+    font-size: clamp(2.5rem, 10vw, 4rem); /* Text scales with the box */
     font-weight: 800;
     cursor: pointer;
     transition: all 0.2s ease;
@@ -149,7 +175,8 @@ button:hover {
     transform: scale(1.05);
 }
 
-/* Base style for strike line (Color added dynamically in JS!) */
+/* --- THE PERCENTAGE-BASED STRIKE LINE --- */
+/* No more pixels! Percentages scale flawlessly on any device */
 .strike {
     position: absolute;
     z-index: 10;
@@ -157,18 +184,19 @@ button:hover {
     transition: all 0.3s ease-in-out;
 }
 
-/* Exactly calculated to stretch edge-to-edge of the 350px inner grid */
-.strike.row-1 { top: 66px; left: 15px; width: 350px; height: 8px; }
-.strike.row-2 { top: 186px; left: 15px; width: 350px; height: 8px; }
-.strike.row-3 { top: 306px; left: 15px; width: 350px; height: 8px; }
+.strike.row-1 { top: 16.6%; left: 5%; width: 90%; height: 8px; margin-top: -4px; }
+.strike.row-2 { top: 50%; left: 5%; width: 90%; height: 8px; margin-top: -4px; }
+.strike.row-3 { top: 83.3%; left: 5%; width: 90%; height: 8px; margin-top: -4px; }
 
-.strike.col-1 { top: 15px; left: 66px; height: 350px; width: 8px; }
-.strike.col-2 { top: 15px; left: 186px; height: 350px; width: 8px; }
-.strike.col-3 { top: 15px; left: 306px; height: 350px; width: 8px; }
+.strike.col-1 { left: 16.6%; top: 5%; height: 90%; width: 8px; margin-left: -4px; }
+.strike.col-2 { left: 50%; top: 5%; height: 90%; width: 8px; margin-left: -4px; }
+.strike.col-3 { left: 83.3%; top: 5%; height: 90%; width: 8px; margin-left: -4px; }
 
-.strike.diag-1 { top: 186px; left: -57px; width: 495px; height: 8px; transform: rotate(45deg); }
-.strike.diag-2 { top: 186px; left: -57px; width: 495px; height: 8px; transform: rotate(-45deg); }
+.strike.diag-1 { top: 50%; left: -10%; width: 120%; height: 8px; margin-top: -4px; transform: rotate(45deg); }
+.strike.diag-2 { top: 50%; left: -10%; width: 120%; height: 8px; margin-top: -4px; transform: rotate(-45deg); }
 
-#statusText { font-weight: 400; letter-spacing: 1px; color: #ddd; }
-#roomDisplay { color: #00e5ff; letter-spacing: 2px; }
+/* Typography */
+#statusText { font-size: clamp(1.2rem, 5vw, 1.5rem); font-weight: 400; letter-spacing: 1px; color: #ddd; margin: 10px 0; }
+#roomDisplay { font-size: clamp(1rem, 4vw, 1.2rem); color: #00e5ff; letter-spacing: 2px; margin: 0; }
+#lobbyMessage { font-size: 1rem; color: #ff4b2b; }
 .hidden { display: none !important; }
