@@ -7,7 +7,6 @@ import string
 
 rooms = {}
 player_rooms = {}
-# NEW: Store names!
 player_names = {} 
 
 def generate_code():
@@ -23,10 +22,7 @@ async def game_handler(websocket):
                 room_code = generate_code()
                 rooms[room_code] = [websocket]  
                 player_rooms[websocket] = room_code
-                
-                # Save their name
                 player_names[websocket] = data.get("name", "Player 1")
-                
                 await websocket.send(json.dumps({"type": "room_created", "room": room_code}))
                 
             elif action == "join":
@@ -34,8 +30,6 @@ async def game_handler(websocket):
                 if room_code in rooms and len(rooms[room_code]) == 1:
                     rooms[room_code].append(websocket) 
                     player_rooms[websocket] = room_code
-                    
-                    # Save their name
                     player_names[websocket] = data.get("name", "Player 2")
                     
                     player1 = rooms[room_code][0]
@@ -44,7 +38,6 @@ async def game_handler(websocket):
                     p1_name = player_names.get(player1, "Player 1")
                     p2_name = player_names.get(player2, "Player 2")
                     
-                    # Send each player the OTHER player's name!
                     await player1.send(json.dumps({"type": "game_start", "room": room_code, "role": "X", "opponent": p2_name}))
                     await player2.send(json.dumps({"type": "game_start", "room": room_code, "role": "O", "opponent": p1_name}))
                 else:
@@ -58,6 +51,18 @@ async def game_handler(websocket):
                             "type": "move",
                             "index": data.get("index"),
                             "symbol": data.get("symbol")
+                        }))
+            
+            # --- NEW LOGIC: Chat System ---
+            elif action == "chat":
+                room_code = player_rooms.get(websocket)
+                if room_code in rooms:
+                    sender_name = player_names.get(websocket, "Unknown")
+                    for ws in rooms[room_code]:
+                        await ws.send(json.dumps({
+                            "type": "chat",
+                            "sender": sender_name,
+                            "message": data.get("message")
                         }))
             
             elif action == "restart":
@@ -77,7 +82,6 @@ async def game_handler(websocket):
                     else:
                         for ws in rooms[room_code]:
                             await ws.send(json.dumps({"type": "player_left"}))
-                    
                     del player_rooms[websocket]
 
     except websockets.exceptions.ConnectionClosed:
@@ -87,17 +91,13 @@ async def game_handler(websocket):
         if room_code:
             if websocket in rooms.get(room_code, []):
                 rooms[room_code].remove(websocket)
-            
             if len(rooms[room_code]) == 0:
                 del rooms[room_code]
             else:
                 for ws in rooms[room_code]:
                     await ws.send(json.dumps({"type": "player_left"}))
-                    
         if websocket in player_rooms:
             del player_rooms[websocket]
-            
-        # Clean up name memory
         if websocket in player_names:
             del player_names[websocket]
 

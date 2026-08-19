@@ -200,3 +200,58 @@ button:hover {
 #roomDisplay { font-size: clamp(1rem, 4vw, 1.2rem); color: #00e5ff; letter-spacing: 2px; margin: 0; }
 #lobbyMessage { font-size: 1rem; color: #ff4b2b; }
 .hidden { display: none !important; }
+
+/* --- CHAT SYSTEM STYLES --- */
+#chatBox {
+    margin-top: 20px;
+    padding: 20px;
+    width: 90vw;
+    max-width: 380px; 
+    gap: 10px;
+}
+
+#chatMessages {
+    width: 100%;
+    height: 150px;
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 10px;
+    padding: 10px;
+    overflow-y: auto; /* Adds scrollbar if messages fill up */
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    text-align: left;
+    box-shadow: inset 0 0 10px rgba(0,0,0,0.3);
+}
+
+.chat-message {
+    font-size: 0.95rem;
+    word-wrap: break-word;
+    color: #eee;
+}
+
+.chat-sender {
+    font-weight: 800;
+    color: #00e5ff;
+}
+
+.chat-input-area {
+    display: flex;
+    gap: 10px;
+    width: 100%;
+}
+
+/* Overriding the lobby input styles specifically for chat */
+#chatInput {
+    flex: 1;
+    font-size: 1rem;
+    padding: 10px;
+    letter-spacing: normal;
+    text-transform: none; 
+}
+
+#sendChatBtn {
+    width: auto;
+    padding: 10px 15px;
+    font-size: 0.9rem;
+}

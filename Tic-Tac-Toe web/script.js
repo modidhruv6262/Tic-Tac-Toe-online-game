@@ -1,12 +1,9 @@
 const socket = new WebSocket('wss://tic-tac-toe-online-game-wokq.onrender.com');
 
-// Name Screen Elements
 const nameScreen = document.getElementById('nameScreen');
 const nameInput = document.getElementById('nameInput');
 const saveNameBtn = document.getElementById('saveNameBtn');
 const greetingText = document.getElementById('greetingText');
-
-// Other Elements
 const lobby = document.getElementById('lobby');
 const gameArea = document.getElementById('gameArea');
 const gameControls = document.getElementById('gameControls');
@@ -21,6 +18,12 @@ const restartBtn = document.getElementById('restartBtn');
 const exitBtn = document.getElementById('exitBtn');
 const strike = document.getElementById('strike');
 
+// NEW CHAT ELEMENTS
+const chatBox = document.getElementById('chatBox');
+const chatMessages = document.getElementById('chatMessages');
+const chatInput = document.getElementById('chatInput');
+const sendChatBtn = document.getElementById('sendChatBtn');
+
 let currentSymbol = 'X'; 
 let myRole = ''; 
 let gameActive = false; 
@@ -28,7 +31,6 @@ let myRoomCode = '';
 let playerName = '';
 let opponentName = '';
 
-// --- 1. NAME SCREEN LOGIC ---
 saveNameBtn.addEventListener('click', () => {
     const enteredName = nameInput.value.trim();
     if (enteredName.length > 0) {
@@ -57,16 +59,12 @@ function resetBoard() {
     });
     currentSymbol = 'X';
     gameActive = true;
-    
-    // Hide and clear the strike line
     strike.className = 'strike hidden'; 
     strike.style.background = '';
     strike.style.boxShadow = '';
-    
     restartBtn.style.display = 'inline-block'; 
 }
 
-// --- 2. SEND NAME WITH ROOM CREATION/JOIN ---
 createBtn.addEventListener('click', () => {
     socket.send(JSON.stringify({ action: "create", name: playerName }));
 });
@@ -84,15 +82,17 @@ restartBtn.addEventListener('click', () => {
     socket.send(JSON.stringify({ action: "restart" }));
 });
 
-// --- 3. FIX EXIT BUG (Clear the board memory!) ---
 exitBtn.addEventListener('click', () => {
     socket.send(JSON.stringify({ action: "leave" }));
     
-    // Wipe the board BEFORE hiding it so the next game starts fresh!
     resetBoard(); 
     statusText.innerText = "Waiting for friend to join...";
     
+    // Clear chat memory
+    chatMessages.innerHTML = '';
+    
     gameArea.classList.add('hidden');
+    chatBox.classList.add('hidden'); // Hide chat on exit
     lobby.classList.remove('hidden');
     gameControls.classList.add('hidden');
     codeInput.value = '';
@@ -103,6 +103,25 @@ exitBtn.addEventListener('click', () => {
     gameActive = false;
 });
 
+// --- NEW CHAT LOGIC ---
+function sendChatMessage() {
+    const message = chatInput.value.trim();
+    if (message.length > 0) {
+        socket.send(JSON.stringify({ action: "chat", message: message }));
+        chatInput.value = ''; // clear input after sending
+    }
+}
+
+sendChatBtn.addEventListener('click', sendChatMessage);
+
+// Allow pressing "Enter" to send message
+chatInput.addEventListener('keypress', (event) => {
+    if (event.key === 'Enter') {
+        sendChatMessage();
+    }
+});
+
+
 socket.onmessage = (event) => {
     const data = JSON.parse(event.data);
 
@@ -111,6 +130,8 @@ socket.onmessage = (event) => {
         lobby.classList.add('hidden');
         gameArea.classList.remove('hidden');
         gameControls.classList.add('hidden'); 
+        chatBox.classList.remove('hidden'); // Show chat!
+        
         roomDisplay.innerText = `ROOM CODE: ${myRoomCode}`;
         statusText.innerText = "Waiting for friend to join...";
     }
@@ -118,13 +139,14 @@ socket.onmessage = (event) => {
     else if (data.type === "game_start") {
         myRoomCode = data.room;
         myRole = data.role; 
-        opponentName = data.opponent; // Get the opponent's name!
+        opponentName = data.opponent; 
         
         lobby.classList.add('hidden');
         gameArea.classList.remove('hidden');
         gameControls.classList.remove('hidden'); 
+        chatBox.classList.remove('hidden'); // Show chat!
         
-        roomDisplay.innerText = `ROOM: ${myRoomCode} | ${playerName} (You) vs ${opponentName}`;
+        roomDisplay.innerText = `ROOM: ${myRoomCode} | ${playerName} vs ${opponentName}`;
         
         if (myRole === 'X') {
             statusText.innerText = "Game Started! Your turn.";
@@ -132,6 +154,21 @@ socket.onmessage = (event) => {
             statusText.innerText = `Game Started! Waiting for ${opponentName}...`;
         }
         resetBoard(); 
+    }
+    
+    // --- NEW: RECEIVE CHAT MESSAGE ---
+    else if (data.type === "chat") {
+        const msgElement = document.createElement('div');
+        msgElement.classList.add('chat-message');
+        
+        // Color the sender name pink if it's the opponent to distinguish easily
+        const senderColor = data.sender === playerName ? '#00e5ff' : '#ff007a';
+        
+        msgElement.innerHTML = `<span class="chat-sender" style="color: ${senderColor}">${data.sender}:</span> ${data.message}`;
+        chatMessages.appendChild(msgElement);
+        
+        // Auto-scroll to the bottom when new message arrives
+        chatMessages.scrollTop = chatMessages.scrollHeight;
     }
     
     else if (data.type === "restart") {
@@ -151,6 +188,13 @@ socket.onmessage = (event) => {
         statusText.innerText = `${opponentName} left. Game paused.`;
         gameActive = false; 
         restartBtn.style.display = 'none'; 
+        
+        // Let players know in chat!
+        const msgElement = document.createElement('div');
+        msgElement.classList.add('chat-message');
+        msgElement.innerHTML = `<em style="color: #ff4b2b;">${opponentName} has left the room.</em>`;
+        chatMessages.appendChild(msgElement);
+        chatMessages.scrollTop = chatMessages.scrollHeight;
     }
     
     else if (data.type === "move") {
@@ -198,12 +242,11 @@ function checkWin() {
     if (roundWon) {
         const winner = currentSymbol === 'X' ? 'O' : 'X';
         
-        // --- 4. COLOR THE STRIKE LINE ---
         if (winner === 'X') {
-            strike.style.background = '#00e5ff'; // Cyan
+            strike.style.background = '#00e5ff'; 
             strike.style.boxShadow = '0 0 15px rgba(0, 229, 255, 0.8)';
         } else {
-            strike.style.background = '#ff007a'; // Pink
+            strike.style.background = '#ff007a'; 
             strike.style.boxShadow = '0 0 15px rgba(255, 0, 122, 0.8)';
         }
         

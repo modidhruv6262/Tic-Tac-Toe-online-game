@@ -9,14 +9,12 @@
 <body>
     <h1>Tic-Tac-Toe</h1>
     
-    <!-- NEW: NAME SCREEN -->
     <div id="nameScreen" class="glass-card">
         <h2>Welcome!</h2>
         <input type="text" id="nameInput" placeholder="Enter your name" maxlength="12">
         <button id="saveNameBtn">Continue</button>
     </div>
 
-    <!-- LOBBY SCREEN (Now hidden by default) -->
     <div id="lobby" class="glass-card hidden">
         <h2 id="greetingText"></h2>
         <button id="createBtn">Create New Game</button>
@@ -26,7 +24,6 @@
         <h3 id="lobbyMessage"></h3>
     </div>
 
-    <!-- GAME SCREEN -->
     <div id="gameArea" class="hidden">
         <h3 id="roomDisplay"></h3>
         
@@ -49,6 +46,16 @@
             <div class="cell" data-index="7"></div>
             <div class="cell" data-index="8"></div>
         </div>
+
+        <!-- NEW: CHAT BOX -->
+        <div id="chatBox" class="glass-card hidden">
+            <div id="chatMessages"></div>
+            <div class="chat-input-area">
+                <input type="text" id="chatInput" placeholder="Type a message..." maxlength="100">
+                <button id="sendChatBtn">Send</button>
+            </div>
+        </div>
+
     </div>
 
     <script src="script.js"></script>
