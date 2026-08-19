@@ -9,8 +9,16 @@
 <body>
     <h1>Tic-Tac-Toe</h1>
     
-    <!-- LOBBY SCREEN -->
-    <div id="lobby">
+    <!-- NEW: NAME SCREEN -->
+    <div id="nameScreen" class="glass-card">
+        <h2>Welcome!</h2>
+        <input type="text" id="nameInput" placeholder="Enter your name" maxlength="12">
+        <button id="saveNameBtn">Continue</button>
+    </div>
+
+    <!-- LOBBY SCREEN (Now hidden by default) -->
+    <div id="lobby" class="glass-card hidden">
+        <h2 id="greetingText"></h2>
         <button id="createBtn">Create New Game</button>
         <p>OR</p>
         <input type="text" id="codeInput" placeholder="Enter 5-digit code" maxlength="5">
@@ -18,19 +26,19 @@
         <h3 id="lobbyMessage"></h3>
     </div>
 
-    <!-- GAME SCREEN (Hidden by default) -->
+    <!-- GAME SCREEN -->
     <div id="gameArea" class="hidden">
         <h3 id="roomDisplay"></h3>
         
-        <!-- NEW BUTTONS HERE -->
         <div id="gameControls" class="hidden">
             <button id="restartBtn">Restart Game</button>
-            <button id="exitBtn" style="background-color: #f44336;">Exit Room</button>
+            <button id="exitBtn">Exit Room</button>
         </div>
 
         <h2 id="statusText">Waiting for friend to join...</h2>
         
         <div id="board" class="board">
+            <div id="strike" class="strike hidden"></div>
             <div class="cell" data-index="0"></div>
             <div class="cell" data-index="1"></div>
             <div class="cell" data-index="2"></div>
