@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Private Tic-Tac-Toe</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <!-- NEW: Theme Toggle Button visible everywhere -->
+    <button id="themeToggle" class="clay theme-btn">🌙 Dark</button>
+
+    <h1>Tic-Tac-Toe</h1>
+    
+    <div id="nameScreen" class="clay-card clay">
+        <h2>Welcome!</h2>
+        <input type="text" id="nameInput" placeholder="Enter your name" maxlength="12" class="clay">
+        <button id="saveNameBtn" class="clay btn-primary">Continue</button>
+    </div>
+
+    <div id="lobby" class="clay-card clay hidden">
+        <h2 id="greetingText"></h2>
+        <button id="createBtn" class="clay btn-primary">Create New Game</button>
+        <p>OR</p>
+        <input type="text" id="codeInput" placeholder="Enter 5-digit code" maxlength="5" class="clay">
+        <button id="joinBtn" class="clay btn-primary">Join Game</button>
+        <h3 id="lobbyMessage"></h3>
+    </div>
+
+    <div id="gameArea" class="hidden">
+        <h3 id="roomDisplay"></h3>
+        
+        <div id="gameControls" class="hidden">
+            <button id="restartBtn" class="clay btn-primary">Restart Game</button>
+            <button id="exitBtn" class="clay btn-danger">Exit Room</button>
+        </div>
+
+        <h2 id="statusText">Waiting for friend to join...</h2>
+        
+        <div id="gameLayout">
+            
+            <div id="board" class="board clay">
+                <div id="strike" class="strike hidden"></div>
+                <!-- Notice the new "clay" class on the cells -->
+                <div class="cell clay" data-index="0"></div>
+                <div class="cell clay" data-index="1"></div>
+                <div class="cell clay" data-index="2"></div>
+                <div class="cell clay" data-index="3"></div>
+                <div class="cell clay" data-index="4"></div>
+                <div class="cell clay" data-index="5"></div>
+                <div class="cell clay" data-index="6"></div>
+                <div class="cell clay" data-index="7"></div>
+                <div class="cell clay" data-index="8"></div>
+            </div>
+
+            <div id="chatBox" class="clay-card clay hidden">
+                <div id="chatMessages" class="clay-inset"></div>
+                <div class="chat-input-area">
+                    <input type="text" id="chatInput" placeholder="Type a message..." maxlength="100" class="clay">
+                    <button id="sendChatBtn" class="clay btn-primary">Send</button>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>

@@ -1,5 +1,7 @@
 const socket = new WebSocket('wss://tic-tac-toe-online-game-wokq.onrender.com');
 
+// Elements
+const themeToggle = document.getElementById('themeToggle');
 const nameScreen = document.getElementById('nameScreen');
 const nameInput = document.getElementById('nameInput');
 const saveNameBtn = document.getElementById('saveNameBtn');
@@ -17,8 +19,6 @@ const cells = document.querySelectorAll('.cell');
 const restartBtn = document.getElementById('restartBtn');
 const exitBtn = document.getElementById('exitBtn');
 const strike = document.getElementById('strike');
-
-// NEW CHAT ELEMENTS
 const chatBox = document.getElementById('chatBox');
 const chatMessages = document.getElementById('chatMessages');
 const chatInput = document.getElementById('chatInput');
@@ -31,6 +31,19 @@ let myRoomCode = '';
 let playerName = '';
 let opponentName = '';
 
+// --- NEW: THEME TOGGLE LOGIC ---
+let isDarkMode = false;
+themeToggle.addEventListener('click', () => {
+    isDarkMode = !isDarkMode;
+    if (isDarkMode) {
+        document.body.setAttribute('data-theme', 'dark');
+        themeToggle.innerText = '☀️ Light';
+    } else {
+        document.body.removeAttribute('data-theme');
+        themeToggle.innerText = '🌙 Dark';
+    }
+});
+
 saveNameBtn.addEventListener('click', () => {
     const enteredName = nameInput.value.trim();
     if (enteredName.length > 0) {
@@ -41,13 +54,12 @@ saveNameBtn.addEventListener('click', () => {
     }
 });
 
+// Changed from hardcoded hex colors to CSS variables
 function applyColor(cell, symbol) {
     if (symbol === 'X') {
-        cell.style.color = '#00e5ff'; 
-        cell.style.textShadow = '0 0 15px rgba(0, 229, 255, 0.8)';
+        cell.style.color = 'var(--accent-x)'; 
     } else if (symbol === 'O') {
-        cell.style.color = '#ff007a'; 
-        cell.style.textShadow = '0 0 15px rgba(255, 0, 122, 0.8)';
+        cell.style.color = 'var(--accent-o)'; 
     }
 }
 
@@ -55,13 +67,11 @@ function resetBoard() {
     cells.forEach(cell => {
         cell.innerText = "";
         cell.style.color = "";
-        cell.style.textShadow = "";
     });
     currentSymbol = 'X';
     gameActive = true;
     strike.className = 'strike hidden'; 
     strike.style.background = '';
-    strike.style.boxShadow = '';
     restartBtn.style.display = 'inline-block'; 
 }
 
@@ -84,15 +94,12 @@ restartBtn.addEventListener('click', () => {
 
 exitBtn.addEventListener('click', () => {
     socket.send(JSON.stringify({ action: "leave" }));
-    
     resetBoard(); 
     statusText.innerText = "Waiting for friend to join...";
-    
-    // Clear chat memory
     chatMessages.innerHTML = '';
     
     gameArea.classList.add('hidden');
-    chatBox.classList.add('hidden'); // Hide chat on exit
+    chatBox.classList.add('hidden'); 
     lobby.classList.remove('hidden');
     gameControls.classList.add('hidden');
     codeInput.value = '';
@@ -103,24 +110,21 @@ exitBtn.addEventListener('click', () => {
     gameActive = false;
 });
 
-// --- NEW CHAT LOGIC ---
 function sendChatMessage() {
     const message = chatInput.value.trim();
     if (message.length > 0) {
         socket.send(JSON.stringify({ action: "chat", message: message }));
-        chatInput.value = ''; // clear input after sending
+        chatInput.value = ''; 
     }
 }
 
 sendChatBtn.addEventListener('click', sendChatMessage);
 
-// Allow pressing "Enter" to send message
 chatInput.addEventListener('keypress', (event) => {
     if (event.key === 'Enter') {
         sendChatMessage();
     }
 });
-
 
 socket.onmessage = (event) => {
     const data = JSON.parse(event.data);
@@ -130,8 +134,7 @@ socket.onmessage = (event) => {
         lobby.classList.add('hidden');
         gameArea.classList.remove('hidden');
         gameControls.classList.add('hidden'); 
-        chatBox.classList.remove('hidden'); // Show chat!
-        
+        chatBox.classList.remove('hidden'); 
         roomDisplay.innerText = `ROOM CODE: ${myRoomCode}`;
         statusText.innerText = "Waiting for friend to join...";
     }
@@ -144,7 +147,7 @@ socket.onmessage = (event) => {
         lobby.classList.add('hidden');
         gameArea.classList.remove('hidden');
         gameControls.classList.remove('hidden'); 
-        chatBox.classList.remove('hidden'); // Show chat!
+        chatBox.classList.remove('hidden'); 
         
         roomDisplay.innerText = `ROOM: ${myRoomCode} | ${playerName} vs ${opponentName}`;
         
@@ -156,18 +159,15 @@ socket.onmessage = (event) => {
         resetBoard(); 
     }
     
-    // --- NEW: RECEIVE CHAT MESSAGE ---
     else if (data.type === "chat") {
         const msgElement = document.createElement('div');
         msgElement.classList.add('chat-message');
         
-        // Color the sender name pink if it's the opponent to distinguish easily
-        const senderColor = data.sender === playerName ? '#00e5ff' : '#ff007a';
+        // Use CSS variables for sender names
+        const senderColor = data.sender === playerName ? 'var(--accent-x)' : 'var(--accent-o)';
         
         msgElement.innerHTML = `<span class="chat-sender" style="color: ${senderColor}">${data.sender}:</span> ${data.message}`;
         chatMessages.appendChild(msgElement);
-        
-        // Auto-scroll to the bottom when new message arrives
         chatMessages.scrollTop = chatMessages.scrollHeight;
     }
     
@@ -189,10 +189,9 @@ socket.onmessage = (event) => {
         gameActive = false; 
         restartBtn.style.display = 'none'; 
         
-        // Let players know in chat!
         const msgElement = document.createElement('div');
         msgElement.classList.add('chat-message');
-        msgElement.innerHTML = `<em style="color: #ff4b2b;">${opponentName} has left the room.</em>`;
+        msgElement.innerHTML = `<em style="color: var(--danger-color);">${opponentName} has left the room.</em>`;
         chatMessages.appendChild(msgElement);
         chatMessages.scrollTop = chatMessages.scrollHeight;
     }
@@ -243,19 +242,17 @@ function checkWin() {
         const winner = currentSymbol === 'X' ? 'O' : 'X';
         
         if (winner === 'X') {
-            strike.style.background = '#00e5ff'; 
-            strike.style.boxShadow = '0 0 15px rgba(0, 229, 255, 0.8)';
+            strike.style.background = 'var(--accent-x)'; 
         } else {
-            strike.style.background = '#ff007a'; 
-            strike.style.boxShadow = '0 0 15px rgba(255, 0, 122, 0.8)';
+            strike.style.background = 'var(--accent-o)'; 
         }
         
         if (winner === myRole) {
             statusText.innerText = "YOU WIN! 🎉";
-            statusText.style.color = '#00e5ff';
+            statusText.style.color = 'var(--accent-x)';
         } else {
             statusText.innerText = `${opponentName.toUpperCase()} WINS! 😢`;
-            statusText.style.color = '#ff007a';
+            statusText.style.color = 'var(--accent-o)';
         }
         
         strike.className = `strike ${winningClass}`;
@@ -263,7 +260,7 @@ function checkWin() {
         
     } else if ([...cells].every(cell => cell.innerText !== "")) {
         statusText.innerText = "IT'S A DRAW!";
-        statusText.style.color = '#fff';
+        statusText.style.color = 'var(--text-color)';
         gameActive = false;
     }
 }
