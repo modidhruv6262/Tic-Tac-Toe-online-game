@@ -10,7 +10,7 @@ player_rooms = {}
 player_names = {} 
 
 def generate_code():
-    return ''.join(random.choices(string.ascii_uppercase + string.digits, k=5))
+    return ''.join(random.choices(string.ascii_uppercase + string.digits, k=4))
 
 async def game_handler(websocket):
     try:

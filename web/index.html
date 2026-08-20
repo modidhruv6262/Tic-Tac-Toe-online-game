@@ -28,21 +28,32 @@
         </div>
     </div>
 
-    <!-- 3. ROOM LOBBY (Only seen if playing with friend) -->
+    <!-- 3. ROOM LOBBY -->
     <div id="lobbyScreen" class="clay-card clay hidden">
         <h2>Multiplayer Room</h2>
         <button id="createBtn" class="clay btn-primary">Create New Room</button>
         <p class="subtitle">OR</p>
-        <input type="text" id="codeInput" placeholder="Enter 5-digit code" maxlength="5" class="clay">
+        <input type="text" id="codeInput" placeholder="Enter 4-digit code" maxlength="4" class="clay">
         <button id="joinBtn" class="clay btn-secondary">Join Room</button>
         <h3 id="lobbyMessage"></h3>
         <button id="backToModeBtn" class="clay btn-danger small-btn mt-10">← Back</button>
     </div>
 
-    <!-- 4. THE SHARED GAME HUB (The Virtual Living Room) -->
+    <!-- 4. THE SHARED GAME HUB -->
     <div id="hubScreen" class="clay-card clay hub-card hidden">
         <h2 id="hubRoleBanner" class="role-banner">Host: Pick a game!</h2>
         <h3 id="hubRoomDisplay"></h3>
+
+        <!-- BOT DIFFICULTY SLIDER CONTAINER -->
+        <div id="difficultyContainer" class="difficulty-box clay-inset hidden">
+            <label for="difficultySlider" class="diff-label">Bot Difficulty: <span id="diffLabelText">Medium</span></label>
+            <input type="range" id="difficultySlider" min="1" max="3" value="2" step="1" class="clay-slider">
+            <div class="slider-marks">
+                <span>Easy</span>
+                <span>Medium</span>
+                <span>Hard</span>
+            </div>
+        </div>
         
         <div class="game-grid">
             <!-- Game 1 -->
@@ -73,7 +84,7 @@
 
     <!-- 5. THE ACTIVE GAME AREA -->
     <div id="gameArea" class="hidden">
-        <div id="gameControls" class="hidden">
+        <div id="gameControls">
             <button id="restartBtn" class="clay btn-primary">Restart Match</button>
             <button id="backToHubBtn" class="clay btn-danger">Return to Hub</button>
         </div>

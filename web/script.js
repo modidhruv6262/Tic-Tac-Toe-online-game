@@ -1,4 +1,4 @@
-const socket = new WebSocket('wss://tic-tac-toe-online-game-wokq.onrender.com'); // Replace with your Render URL if needed
+const socket = new WebSocket('wss://tic-tac-toe-online-game-wokq.onrender.com');
 
 // --- UI ELEMENTS ---
 const themeToggle = document.getElementById('themeToggle');
@@ -23,6 +23,10 @@ const hubRoomDisplay = document.getElementById('hubRoomDisplay');
 const launchTicTacToe = document.getElementById('launchTicTacToe');
 const leaveHubBtn = document.getElementById('leaveHubBtn');
 
+const difficultyContainer = document.getElementById('difficultyContainer');
+const difficultySlider = document.getElementById('difficultySlider');
+const diffLabelText = document.getElementById('diffLabelText');
+
 const gameArea = document.getElementById('gameArea');
 const gameControls = document.getElementById('gameControls');
 const backToHubBtn = document.getElementById('backToHubBtn');
@@ -44,11 +48,19 @@ const overlayHubBtn = document.getElementById('overlayHubBtn');
 // --- STATE VARIABLES ---
 let currentMode = ''; // 'bot' or 'friend'
 let currentSymbol = 'X'; 
-let myRole = ''; // 'Host' (X) or 'Guest' (O)
+let myRole = ''; // 'Host' or 'Guest'
 let gameActive = false; 
 let myRoomCode = '';
 let playerName = '';
 let opponentName = '';
+let botDifficulty = 2; // 1: Easy, 2: Medium, 3: Hard
+
+// --- DIFFICULTY SLIDER LOGIC ---
+const diffNames = { 1: "Easy", 2: "Medium", 3: "Hard (Unbeatable)" };
+difficultySlider.addEventListener('input', (e) => {
+    botDifficulty = parseInt(e.target.value);
+    diffLabelText.innerText = diffNames[botDifficulty];
+});
 
 // --- THEME TOGGLE ---
 let isDarkMode = false;
@@ -89,7 +101,8 @@ vsBotBtn.addEventListener('click', () => {
     opponentName = 'Bot';
     
     hubRoleBanner.innerText = "Solo Practice Mode";
-    hubRoomDisplay.innerText = "Local Game";
+    hubRoomDisplay.innerText = "";
+    difficultyContainer.classList.remove('hidden');
     launchTicTacToe.classList.remove('locked-game'); 
     
     showScreen(hubScreen);
@@ -97,6 +110,7 @@ vsBotBtn.addEventListener('click', () => {
 
 vsFriendBtn.addEventListener('click', () => {
     currentMode = 'friend';
+    difficultyContainer.classList.add('hidden');
     showScreen(lobbyScreen);
 });
 
@@ -113,7 +127,7 @@ createBtn.addEventListener('click', () => {
 
 joinBtn.addEventListener('click', () => {
     const code = codeInput.value.trim();
-    if (code.length === 5) {
+    if (code.length === 4) {
         socket.send(JSON.stringify({ action: "join", room: code, name: playerName }));
     } else {
         lobbyMessage.innerText = "Invalid Code";
@@ -126,7 +140,6 @@ leaveHubBtn.addEventListener('click', () => {
     showScreen(modeScreen);
 });
 
-// HOST launches the game
 launchTicTacToe.addEventListener('click', () => {
     if (myRole === 'Host' || currentMode === 'bot') {
         if (currentMode === 'friend') {
@@ -145,7 +158,7 @@ function startGameUI() {
     if (currentMode === 'friend') {
         chatBox.classList.remove('hidden');
     } else {
-        chatBox.classList.add('hidden'); // No chat needed for bot
+        chatBox.classList.add('hidden');
     }
     
     resetBoard();
@@ -165,25 +178,98 @@ function applyColor(cell, symbol) {
     cell.style.color = symbol === 'X' ? 'var(--accent-x)' : 'var(--accent-o)'; 
 }
 
+// --- BOT AI LOGIC ---
+const winCombos = [
+    [0, 1, 2], [3, 4, 5], [6, 7, 8],
+    [0, 3, 6], [1, 4, 7], [2, 5, 8],
+    [0, 4, 8], [2, 4, 6]
+];
+
+function checkBoardWinner(board) {
+    for (let combo of winCombos) {
+        const [a, b, c] = combo;
+        if (board[a] && board[a] === board[b] && board[a] === board[c]) {
+            return board[a];
+        }
+    }
+    if (board.every(cell => cell !== "")) return 'tie';
+    return null;
+}
+
+function minimax(board, depth, isMaximizing) {
+    let result = checkBoardWinner(board);
+    if (result === 'O') return 10 - depth;
+    if (result === 'X') return depth - 10;
+    if (result === 'tie') return 0;
+
+    if (isMaximizing) {
+        let bestScore = -Infinity;
+        for (let i = 0; i < 9; i++) {
+            if (board[i] === "") {
+                board[i] = 'O';
+                let score = minimax(board, depth + 1, false);
+                board[i] = "";
+                bestScore = Math.max(score, bestScore);
+            }
+        }
+        return bestScore;
+    } else {
+        let bestScore = Infinity;
+        for (let i = 0; i < 9; i++) {
+            if (board[i] === "") {
+                board[i] = 'X';
+                let score = minimax(board, depth + 1, true);
+                board[i] = "";
+                bestScore = Math.min(score, bestScore);
+            }
+        }
+        return bestScore;
+    }
+}
+
+function getBestMove() {
+    let currentBoard = Array.from(cells).map(cell => cell.innerText);
+    let emptyIndices = currentBoard.map((val, idx) => val === "" ? idx : null).filter(val => val !== null);
+
+    // 1. Easy: Completely random
+    if (botDifficulty === 1) {
+        return emptyIndices[Math.floor(Math.random() * emptyIndices.length)];
+    }
+
+    // 2. Medium: 50% optimal, 50% random
+    if (botDifficulty === 2 && Math.random() < 0.5) {
+        return emptyIndices[Math.floor(Math.random() * emptyIndices.length)];
+    }
+
+    // 3. Hard / Optimal: Minimax algorithm
+    let bestScore = -Infinity;
+    let move = emptyIndices[0];
+    for (let i of emptyIndices) {
+        currentBoard[i] = 'O';
+        let score = minimax(currentBoard, 0, false);
+        currentBoard[i] = "";
+        if (score > bestScore) {
+            bestScore = score;
+            move = i;
+        }
+    }
+    return move;
+}
+
 function handleBotMove() {
     if (!gameActive) return;
-    
     statusText.innerText = "Bot is thinking...";
+    
     setTimeout(() => {
-        let emptyCells = [];
-        cells.forEach((cell, index) => {
-            if (cell.innerText === "") emptyCells.push(index);
-        });
-        
-        if (emptyCells.length > 0) {
-            let randomIndex = emptyCells[Math.floor(Math.random() * emptyCells.length)];
-            cells[randomIndex].innerText = 'O';
-            applyColor(cells[randomIndex], 'O');
+        let moveIndex = getBestMove();
+        if (moveIndex !== undefined && moveIndex !== null) {
+            cells[moveIndex].innerText = 'O';
+            applyColor(cells[moveIndex], 'O');
             currentSymbol = 'X';
             statusText.innerText = "Your Turn!";
             checkWin();
         }
-    }, 800); // Artificial delay to make bot feel real
+    }, 500);
 }
 
 cells.forEach(cell => {
@@ -194,7 +280,6 @@ cells.forEach(cell => {
             if (currentMode === 'friend') {
                 socket.send(JSON.stringify({ action: "move", index: cell.getAttribute('data-index'), symbol: playerSymbol }));
             } else {
-                // Solo Mode Logic
                 cell.innerText = 'X';
                 applyColor(cell, 'X');
                 currentSymbol = 'O';
@@ -205,7 +290,7 @@ cells.forEach(cell => {
     });
 });
 
-// --- GAME RETURN & RESTART BUTTONS ---
+// --- RETURN TO HUB & RESTART BUTTONS ---
 function returnToHub() {
     if (currentMode === 'friend') {
         socket.send(JSON.stringify({ action: "return_hub" }));
@@ -294,7 +379,7 @@ socket.onmessage = (event) => {
         myRole = 'Host';
         
         hubRoleBanner.innerText = "Host: Pick a game!";
-        hubRoomDisplay.innerText = `Room: ${myRoomCode}`;
+        hubRoomDisplay.innerText = `Room Code: ${myRoomCode}`;
         launchTicTacToe.classList.remove('locked-game'); 
         
         showScreen(hubScreen);
@@ -313,7 +398,7 @@ socket.onmessage = (event) => {
             launchTicTacToe.classList.add('locked-game');
         }
         
-        hubRoomDisplay.innerText = `Room: ${myRoomCode}`;
+        hubRoomDisplay.innerText = `Room Code: ${myRoomCode}`;
         showScreen(hubScreen);
     }
     
@@ -347,7 +432,7 @@ socket.onmessage = (event) => {
     else if (data.type === "player_left") {
         statusText.innerText = `${opponentName} left.`;
         gameActive = false; 
-        showScreen(modeScreen); // Kick out to menu if friend leaves
+        showScreen(modeScreen);
         alert(`${opponentName} disconnected.`);
     }
     
