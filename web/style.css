@@ -1,8 +1,6 @@
 @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@600;800;900&display=swap');
 
-/* --- VIBRANT CLAYMORPHISM VARIABLES --- */
 :root {
-    /* Light Mode (Bright & Energetic) */
     --bg-color: #e0eaff; 
     --text-color: #1e1e2f;
     --clay-bg: #f5f7ff;
@@ -13,16 +11,15 @@
     
     --clay-inset-shadow: inset 8px 8px 16px rgba(170, 180, 220, 0.6), inset -8px -8px 16px rgba(255, 255, 255, 1);
     
-    --primary-color: #8a2be2; /* Bright Purple */
-    --secondary-color: #ff9f43; /* Bright Orange */
-    --danger-color: #ff4757;  /* Bright Red */
+    --primary-color: #8a2be2;
+    --secondary-color: #ff9f43;
+    --danger-color: #ff4757; 
     
-    --accent-x: #ff4757; /* Punchy Red for X */
-    --accent-o: #1e90ff; /* Punchy Blue for O */
+    --accent-x: #ff4757;
+    --accent-o: #1e90ff;
 }
 
 [data-theme="dark"] {
-    /* Dark Mode (Deep & Glowing) */
     --bg-color: #0f0f1b; 
     --text-color: #f1f2f6;
     --clay-bg: #1e1e2f;
@@ -80,7 +77,6 @@ h1 {
     color: var(--primary-color);
 }
 
-/* CLAYMORPHISM BASE */
 .clay {
     background-color: var(--clay-bg);
     border-radius: 25px;
@@ -144,20 +140,31 @@ button:active {
 
 #gameArea { display: flex; flex-direction: column; align-items: center; width: 100%; max-width: 900px; }
 #gameControls { display: flex; gap: 15px; margin-bottom: 10px; justify-content: center; width: 100%; }
-#gameLayout { display: flex; flex-direction: column; align-items: center; width: 100%; gap: 25px; margin-top: 10px; }
 
-/* THE BOARD */
+/* --- BOARD & CHAT ALIGNMENT --- */
+#gameLayout { 
+    display: flex; 
+    flex-direction: column; 
+    align-items: center; 
+    justify-content: center;
+    width: 100%; 
+    max-width: 860px;
+    gap: 25px; 
+    margin-top: 15px; 
+}
+
 .board {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
     grid-template-rows: repeat(3, 1fr);
     grid-gap: 15px; 
     padding: 20px;
-    border-radius: 40px;
+    border-radius: 35px;
     position: relative; 
     width: 90vw;
     max-width: 400px; 
-    aspect-ratio: 1 / 1; 
+    height: 400px;
+    box-sizing: border-box;
 }
 
 .cell {
@@ -180,7 +187,7 @@ button:active {
 .strike.diag-1 { top: 50%; left: -10%; width: 120%; height: 14px; margin-top: -7px; transform: rotate(45deg); }
 .strike.diag-2 { top: 50%; left: -10%; width: 120%; height: 14px; margin-top: -7px; transform: rotate(-45deg); }
 
-/* --- CINEMATIC BOUNCY OVERLAY --- */
+/* --- OVERLAY --- */
 #resultOverlay {
     position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
     background: rgba(0, 0, 0, 0.6);
@@ -204,76 +211,55 @@ button:active {
     100% { transform: scale(1) translateY(0); opacity: 1; } 
 }
 
-/* CHAT BOX */
-#chatBox { padding: 30px 25px; width: 90vw; max-width: 400px; gap: 15px; }
-#chatMessages {
-    width: 100%; height: 180px; border-radius: 20px; padding: 15px; overflow-y: auto; 
-    display: flex; flex-direction: column; gap: 10px; text-align: left;
-    background-color: var(--clay-bg); box-shadow: var(--clay-inset-shadow);
+/* --- CHAT BOX --- */
+#chatBox { 
+    padding: 20px; 
+    width: 90vw; 
+    max-width: 400px; 
+    height: 400px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    margin: 0; 
+    border-radius: 35px;
+    box-sizing: border-box;
 }
+
+#chatMessages {
+    width: 100%; 
+    flex: 1; 
+    border-radius: 20px; 
+    padding: 15px; 
+    overflow-y: auto; 
+    display: flex; 
+    flex-direction: column; 
+    gap: 10px; 
+    text-align: left;
+    background-color: var(--clay-bg); 
+    box-shadow: var(--clay-inset-shadow);
+    margin-bottom: 12px;
+}
+
 .chat-message { font-size: 1rem; font-weight: 800; word-wrap: break-word; }
-.chat-input-area { display: flex; gap: 10px; width: 100%; }
-#chatInput { flex: 1; padding: 15px; text-transform: none; font-size: 1rem; }
-#sendChatBtn { width: auto; padding: 15px 20px; }
+.chat-input-area { display: flex; gap: 10px; width: 100%; align-items: center; }
+#chatInput { flex: 1; padding: 12px 15px; text-transform: none; font-size: 0.95rem; height: 48px; }
+#sendChatBtn { width: auto; padding: 12px 18px; font-size: 0.95rem; height: 48px; display: flex; align-items: center; justify-content: center; }
 
 #statusText { font-size: clamp(1.3rem, 5vw, 1.6rem); font-weight: 900; margin: 10px 0; color: var(--primary-color); }
 #roomDisplay { font-size: clamp(1rem, 4vw, 1.2rem); margin: 0; font-weight: 900; opacity: 0.8; }
 .hidden { display: none !important; }
 
-@media (min-width: 850px) {
-    #gameLayout { flex-direction: row; align-items: flex-start; justify-content: center; gap: 40px; }
-    #chatBox { height: 400px; display: flex; flex-direction: column; }
-    #chatMessages { flex-grow: 1; height: auto; }
-}
+/* --- HUB STYLES --- */
+.subtitle { font-weight: 800; opacity: 0.7; margin: -10px 0 10px 0; }
+.mt-10 { margin-top: 15px; }
+.small-btn { padding: 10px 15px; font-size: 0.9rem; max-width: 150px; }
 
-/* --- NEW ARCHITECTURE STYLES --- */
+.mode-grid { display: flex; flex-direction: column; gap: 15px; width: 100%; }
+.mode-btn { padding: 20px; font-size: 1.3rem; max-width: 100%; }
 
-.subtitle {
-    font-weight: 800;
-    opacity: 0.7;
-    margin: -10px 0 10px 0;
-}
-
-.mt-10 {
-    margin-top: 15px;
-}
-
-.small-btn {
-    padding: 10px 15px;
-    font-size: 0.9rem;
-    max-width: 150px;
-}
-
-/* Mode Selection Grid */
-.mode-grid {
-    display: flex;
-    flex-direction: column;
-    gap: 15px;
-    width: 100%;
-}
-
-.mode-btn {
-    padding: 20px;
-    font-size: 1.3rem;
-    max-width: 100%;
-}
-
-/* Hub Screen & Game Cards */
-.hub-card {
-    max-width: 600px !important; /* Wider card to fit multiple games */
-}
-
-.role-banner {
-    color: var(--primary-color);
-    background: rgba(0,0,0,0.05);
-    padding: 10px 20px;
-    border-radius: 15px;
-    width: 100%;
-}
-
-[data-theme="dark"] .role-banner {
-    background: rgba(255,255,255,0.05);
-}
+.hub-card { max-width: 600px !important; }
+.role-banner { color: var(--primary-color); background: rgba(0,0,0,0.05); padding: 10px 20px; border-radius: 15px; width: 100%; }
+[data-theme="dark"] .role-banner { background: rgba(255,255,255,0.05); }
 
 .game-grid {
     display: grid;
@@ -305,23 +291,10 @@ button:active {
     box-shadow: var(--clay-inset-shadow) !important;
 }
 
-.game-icon {
-    font-size: 3rem;
-}
+.game-icon { font-size: 3rem; }
+.game-card h3 { font-size: 1.1rem; margin: 0; font-weight: 900; }
 
-.game-card h3 {
-    font-size: 1.1rem;
-    margin: 0;
-    font-weight: 900;
-}
-
-/* Guest Lock State & Coming Soon State */
-.locked-game {
-    opacity: 0.5;
-    cursor: not-allowed;
-    filter: grayscale(0.5);
-}
-
+.locked-game { opacity: 0.5; cursor: not-allowed; filter: grayscale(0.5); }
 .badge {
     position: absolute;
     top: -10px;
@@ -336,14 +309,9 @@ button:active {
     box-shadow: 0 4px 10px rgba(0,0,0,0.2);
 }
 
-.hub-controls {
-    display: flex;
-    width: 100%;
-    justify-content: flex-start;
-    margin-top: 10px;
-}
+.hub-controls { display: flex; width: 100%; justify-content: flex-start; margin-top: 10px; }
 
-/* --- DIFFICULTY SLIDER STYLES --- */
+/* --- DIFFICULTY SLIDER --- */
 .difficulty-box {
     width: 100%;
     padding: 15px 20px;
@@ -355,14 +323,8 @@ button:active {
     background: var(--clay-bg);
 }
 
-.diff-label {
-    font-weight: 900;
-    font-size: 1rem;
-}
-
-#diffLabelText {
-    color: var(--primary-color);
-}
+.diff-label { font-weight: 900; font-size: 1rem; }
+#diffLabelText { color: var(--primary-color); }
 
 .clay-slider {
     -webkit-appearance: none;
@@ -388,14 +350,14 @@ button:active {
     transition: transform 0.15s ease;
 }
 
-.clay-slider::-webkit-slider-thumb:hover {
-    transform: scale(1.15);
-}
+.clay-slider::-webkit-slider-thumb:hover { transform: scale(1.15); }
+.slider-marks { display: flex; justify-content: space-between; font-size: 0.8rem; font-weight: 800; opacity: 0.8; }
 
-.slider-marks {
-    display: flex;
-    justify-content: space-between;
-    font-size: 0.8rem;
-    font-weight: 800;
-    opacity: 0.8;
+@media (min-width: 850px) {
+    #gameLayout {
+        flex-direction: row;
+        align-items: stretch;
+        justify-content: center;
+        gap: 30px;
+    }
 }

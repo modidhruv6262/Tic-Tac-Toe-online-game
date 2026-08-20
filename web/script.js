@@ -100,8 +100,8 @@ vsBotBtn.addEventListener('click', () => {
     myRole = 'Host';
     opponentName = 'Bot';
     
-    hubRoleBanner.innerText = "Solo Practice Mode";
-    hubRoomDisplay.innerText = "";
+    hubRoleBanner.classList.add('hidden');
+    hubRoomDisplay.classList.add('hidden');
     difficultyContainer.classList.remove('hidden');
     launchTicTacToe.classList.remove('locked-game'); 
     
@@ -178,7 +178,7 @@ function applyColor(cell, symbol) {
     cell.style.color = symbol === 'X' ? 'var(--accent-x)' : 'var(--accent-o)'; 
 }
 
-// --- BOT AI LOGIC ---
+// --- BOT MINIMAX LOGIC ---
 const winCombos = [
     [0, 1, 2], [3, 4, 5], [6, 7, 8],
     [0, 3, 6], [1, 4, 7], [2, 5, 8],
@@ -231,17 +231,14 @@ function getBestMove() {
     let currentBoard = Array.from(cells).map(cell => cell.innerText);
     let emptyIndices = currentBoard.map((val, idx) => val === "" ? idx : null).filter(val => val !== null);
 
-    // 1. Easy: Completely random
     if (botDifficulty === 1) {
         return emptyIndices[Math.floor(Math.random() * emptyIndices.length)];
     }
 
-    // 2. Medium: 50% optimal, 50% random
     if (botDifficulty === 2 && Math.random() < 0.5) {
         return emptyIndices[Math.floor(Math.random() * emptyIndices.length)];
     }
 
-    // 3. Hard / Optimal: Minimax algorithm
     let bestScore = -Infinity;
     let move = emptyIndices[0];
     for (let i of emptyIndices) {
@@ -378,6 +375,8 @@ socket.onmessage = (event) => {
         myRoomCode = data.room;
         myRole = 'Host';
         
+        hubRoleBanner.classList.remove('hidden');
+        hubRoomDisplay.classList.remove('hidden');
         hubRoleBanner.innerText = "Host: Pick a game!";
         hubRoomDisplay.innerText = `Room Code: ${myRoomCode}`;
         launchTicTacToe.classList.remove('locked-game'); 
@@ -389,6 +388,9 @@ socket.onmessage = (event) => {
         myRoomCode = data.room;
         myRole = data.role; 
         opponentName = data.opponent; 
+        
+        hubRoleBanner.classList.remove('hidden');
+        hubRoomDisplay.classList.remove('hidden');
         
         if (myRole === 'Host') {
             hubRoleBanner.innerText = `Host: Pick a game for you and ${opponentName}`;
