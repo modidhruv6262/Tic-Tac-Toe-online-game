@@ -22,7 +22,7 @@ async def game_handler(websocket):
                 room_code = generate_code()
                 rooms[room_code] = [websocket]  
                 player_rooms[websocket] = room_code
-                player_names[websocket] = data.get("name", "Player 1")
+                player_names[websocket] = data.get("name", "Host")
                 await websocket.send(json.dumps({"type": "room_created", "room": room_code}))
                 
             elif action == "join":
@@ -30,40 +30,48 @@ async def game_handler(websocket):
                 if room_code in rooms and len(rooms[room_code]) == 1:
                     rooms[room_code].append(websocket) 
                     player_rooms[websocket] = room_code
-                    player_names[websocket] = data.get("name", "Player 2")
+                    player_names[websocket] = data.get("name", "Guest")
                     
-                    player1 = rooms[room_code][0]
-                    player2 = rooms[room_code][1]
+                    player1 = rooms[room_code][0] # Host
+                    player2 = rooms[room_code][1] # Guest
                     
-                    p1_name = player_names.get(player1, "Player 1")
-                    p2_name = player_names.get(player2, "Player 2")
+                    p1_name = player_names.get(player1, "Host")
+                    p2_name = player_names.get(player2, "Guest")
                     
-                    await player1.send(json.dumps({"type": "game_start", "room": room_code, "role": "X", "opponent": p2_name}))
-                    await player2.send(json.dumps({"type": "game_start", "room": room_code, "role": "O", "opponent": p1_name}))
+                    await player1.send(json.dumps({"type": "hub_start", "room": room_code, "role": "Host", "opponent": p2_name}))
+                    await player2.send(json.dumps({"type": "hub_start", "room": room_code, "role": "Guest", "opponent": p1_name}))
                 else:
-                    await websocket.send(json.dumps({"type": "error", "message": "Room full or invalid code."}))
-                    
-            elif action == "move":
+                    await websocket.send(json.dumps({"type": "error", "message": "Invalid Code or Room Full."}))
+            
+            # --- NEW: HOST REMOTE CONTROL ROUTING ---
+            elif action == "launch_game":
                 room_code = player_rooms.get(websocket)
                 if room_code in rooms:
                     for ws in rooms[room_code]:
                         await ws.send(json.dumps({
-                            "type": "move",
-                            "index": data.get("index"),
-                            "symbol": data.get("symbol")
+                            "type": "launch_game",
+                            "game": data.get("game")
                         }))
             
-            # --- NEW LOGIC: Chat System ---
+            elif action == "return_hub":
+                room_code = player_rooms.get(websocket)
+                if room_code in rooms:
+                    for ws in rooms[room_code]:
+                        await ws.send(json.dumps({"type": "return_hub"}))
+                        
+            # Standard Game Actions
+            elif action == "move":
+                room_code = player_rooms.get(websocket)
+                if room_code in rooms:
+                    for ws in rooms[room_code]:
+                        await ws.send(json.dumps({"type": "move", "index": data.get("index"), "symbol": data.get("symbol")}))
+            
             elif action == "chat":
                 room_code = player_rooms.get(websocket)
                 if room_code in rooms:
                     sender_name = player_names.get(websocket, "Unknown")
                     for ws in rooms[room_code]:
-                        await ws.send(json.dumps({
-                            "type": "chat",
-                            "sender": sender_name,
-                            "message": data.get("message")
-                        }))
+                        await ws.send(json.dumps({"type": "chat", "sender": sender_name, "message": data.get("message")}))
             
             elif action == "restart":
                 room_code = player_rooms.get(websocket)
@@ -76,7 +84,6 @@ async def game_handler(websocket):
                 if room_code:
                     if websocket in rooms.get(room_code, []):
                         rooms[room_code].remove(websocket)
-                    
                     if len(rooms[room_code]) == 0:
                         del rooms[room_code]
                     else:

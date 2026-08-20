@@ -3,41 +3,85 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Private Tic-Tac-Toe</title>
+    <title>Private Arcade Hub</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <!-- THEME CHANGER IS BACK -->
     <button id="themeToggle" class="clay theme-btn">🌙 Dark</button>
 
-    <h1>Tic-Tac-Toe</h1>
+    <h1>Arcade Hub</h1>
     
+    <!-- 1. IDENTIFICATION -->
     <div id="nameScreen" class="clay-card clay">
         <h2>Welcome!</h2>
-        <input type="text" id="nameInput" placeholder="Enter your name" maxlength="12" class="clay">
+        <input type="text" id="nameInput" placeholder="e.g., Dhruv" maxlength="12" class="clay">
         <button id="saveNameBtn" class="clay btn-primary">Continue</button>
     </div>
 
-    <div id="lobby" class="clay-card clay hidden">
+    <!-- 2. MODE SELECTION -->
+    <div id="modeScreen" class="clay-card clay hidden">
         <h2 id="greetingText"></h2>
-        <button id="createBtn" class="clay btn-primary">Create New Game</button>
-        <p>OR</p>
-        <input type="text" id="codeInput" placeholder="Enter 5-digit code" maxlength="5" class="clay">
-        <button id="joinBtn" class="clay btn-secondary">Join Game</button>
-        <h3 id="lobbyMessage"></h3>
+        <p class="subtitle">Choose your path:</p>
+        <div class="mode-grid">
+            <button id="vsBotBtn" class="clay btn-secondary mode-btn">🤖 Play vs. Bot</button>
+            <button id="vsFriendBtn" class="clay btn-primary mode-btn">👥 Play with Friend</button>
+        </div>
     </div>
 
-    <div id="gameArea" class="hidden">
-        <h3 id="roomDisplay"></h3>
+    <!-- 3. ROOM LOBBY (Only seen if playing with friend) -->
+    <div id="lobbyScreen" class="clay-card clay hidden">
+        <h2>Multiplayer Room</h2>
+        <button id="createBtn" class="clay btn-primary">Create New Room</button>
+        <p class="subtitle">OR</p>
+        <input type="text" id="codeInput" placeholder="Enter 5-digit code" maxlength="5" class="clay">
+        <button id="joinBtn" class="clay btn-secondary">Join Room</button>
+        <h3 id="lobbyMessage"></h3>
+        <button id="backToModeBtn" class="clay btn-danger small-btn mt-10">← Back</button>
+    </div>
+
+    <!-- 4. THE SHARED GAME HUB (The Virtual Living Room) -->
+    <div id="hubScreen" class="clay-card clay hub-card hidden">
+        <h2 id="hubRoleBanner" class="role-banner">Host: Pick a game!</h2>
+        <h3 id="hubRoomDisplay"></h3>
         
+        <div class="game-grid">
+            <!-- Game 1 -->
+            <div class="game-card clay" id="launchTicTacToe">
+                <div class="game-icon">❌⭕</div>
+                <h3>Tic-Tac-Toe</h3>
+            </div>
+            
+            <!-- Game 2 (Placeholder) -->
+            <div class="game-card clay locked-game">
+                <div class="game-icon">🔴🟡</div>
+                <h3>Connect 4</h3>
+                <span class="badge">Coming Soon</span>
+            </div>
+            
+            <!-- Game 3 (Placeholder) -->
+            <div class="game-card clay locked-game">
+                <div class="game-icon">✊✋✌️</div>
+                <h3>RPS</h3>
+                <span class="badge">Coming Soon</span>
+            </div>
+        </div>
+        
+        <div class="hub-controls">
+            <button id="leaveHubBtn" class="clay btn-danger small-btn">Leave Room</button>
+        </div>
+    </div>
+
+    <!-- 5. THE ACTIVE GAME AREA -->
+    <div id="gameArea" class="hidden">
         <div id="gameControls" class="hidden">
-            <button id="restartBtn" class="clay btn-primary">Restart Game</button>
-            <button id="exitBtn" class="clay btn-danger">Exit Room</button>
+            <button id="restartBtn" class="clay btn-primary">Restart Match</button>
+            <button id="backToHubBtn" class="clay btn-danger">Return to Hub</button>
         </div>
 
-        <h2 id="statusText">Waiting for friend...</h2>
+        <h2 id="statusText">Loading...</h2>
         
         <div id="gameLayout">
+            <!-- Tic Tac Toe Board -->
             <div id="board" class="board clay">
                 <div id="strike" class="strike hidden"></div>
                 <div class="cell clay" data-index="0"></div>
@@ -51,6 +95,7 @@
                 <div class="cell clay" data-index="8"></div>
             </div>
 
+            <!-- Global Room Chat -->
             <div id="chatBox" class="clay-card clay hidden">
                 <div id="chatMessages" class="clay-inset"></div>
                 <div class="chat-input-area">
@@ -61,11 +106,12 @@
         </div>
     </div>
 
-    <!-- NEW: Cinematic Clay Overlay for Wins/Losses -->
+    <!-- CINEMATIC OVERLAY -->
     <div id="resultOverlay" class="hidden">
         <div class="clay-card clay result-card">
             <h1 id="resultTitle">VICTORY!</h1>
             <button id="overlayRestartBtn" class="clay btn-primary">Play Again</button>
+            <button id="overlayHubBtn" class="clay btn-secondary mt-10">Return to Hub</button>
         </div>
     </div>
 
