@@ -1,6 +1,5 @@
 const socket = new WebSocket('wss://tic-tac-toe-online-game-wokq.onrender.com');
 
-// Elements
 const themeToggle = document.getElementById('themeToggle');
 const nameScreen = document.getElementById('nameScreen');
 const nameInput = document.getElementById('nameInput');
@@ -24,6 +23,10 @@ const chatMessages = document.getElementById('chatMessages');
 const chatInput = document.getElementById('chatInput');
 const sendChatBtn = document.getElementById('sendChatBtn');
 
+const resultOverlay = document.getElementById('resultOverlay');
+const resultTitle = document.getElementById('resultTitle');
+const overlayRestartBtn = document.getElementById('overlayRestartBtn');
+
 let currentSymbol = 'X'; 
 let myRole = ''; 
 let gameActive = false; 
@@ -31,7 +34,7 @@ let myRoomCode = '';
 let playerName = '';
 let opponentName = '';
 
-// --- NEW: THEME TOGGLE LOGIC ---
+// THEME TOGGLE
 let isDarkMode = false;
 themeToggle.addEventListener('click', () => {
     isDarkMode = !isDarkMode;
@@ -41,6 +44,13 @@ themeToggle.addEventListener('click', () => {
     } else {
         document.body.removeAttribute('data-theme');
         themeToggle.innerText = '🌙 Dark';
+    }
+});
+
+// PRESS "ENTER" TO CONTINUE ON NAME SCREEN
+nameInput.addEventListener('keypress', (event) => {
+    if (event.key === 'Enter') {
+        saveNameBtn.click(); 
     }
 });
 
@@ -54,7 +64,6 @@ saveNameBtn.addEventListener('click', () => {
     }
 });
 
-// Changed from hardcoded hex colors to CSS variables
 function applyColor(cell, symbol) {
     if (symbol === 'X') {
         cell.style.color = 'var(--accent-x)'; 
@@ -72,30 +81,27 @@ function resetBoard() {
     gameActive = true;
     strike.className = 'strike hidden'; 
     strike.style.background = '';
-    restartBtn.style.display = 'inline-block'; 
+    resultOverlay.classList.add('hidden'); // Hide overlay
 }
 
-createBtn.addEventListener('click', () => {
-    socket.send(JSON.stringify({ action: "create", name: playerName }));
-});
+createBtn.addEventListener('click', () => { socket.send(JSON.stringify({ action: "create", name: playerName })); });
 
 joinBtn.addEventListener('click', () => {
     const code = codeInput.value.trim();
     if (code.length === 5) {
         socket.send(JSON.stringify({ action: "join", room: code, name: playerName }));
     } else {
-        lobbyMessage.innerText = "Please enter a valid 5-character code.";
+        lobbyMessage.innerText = "Invalid Code";
     }
 });
 
-restartBtn.addEventListener('click', () => {
-    socket.send(JSON.stringify({ action: "restart" }));
-});
+restartBtn.addEventListener('click', () => { socket.send(JSON.stringify({ action: "restart" })); });
+overlayRestartBtn.addEventListener('click', () => { socket.send(JSON.stringify({ action: "restart" })); });
 
 exitBtn.addEventListener('click', () => {
     socket.send(JSON.stringify({ action: "leave" }));
     resetBoard(); 
-    statusText.innerText = "Waiting for friend to join...";
+    statusText.innerText = "Waiting for friend...";
     chatMessages.innerHTML = '';
     
     gameArea.classList.add('hidden');
@@ -117,14 +123,8 @@ function sendChatMessage() {
         chatInput.value = ''; 
     }
 }
-
 sendChatBtn.addEventListener('click', sendChatMessage);
-
-chatInput.addEventListener('keypress', (event) => {
-    if (event.key === 'Enter') {
-        sendChatMessage();
-    }
-});
+chatInput.addEventListener('keypress', (event) => { if (event.key === 'Enter') sendChatMessage(); });
 
 socket.onmessage = (event) => {
     const data = JSON.parse(event.data);
@@ -135,8 +135,8 @@ socket.onmessage = (event) => {
         gameArea.classList.remove('hidden');
         gameControls.classList.add('hidden'); 
         chatBox.classList.remove('hidden'); 
-        roomDisplay.innerText = `ROOM CODE: ${myRoomCode}`;
-        statusText.innerText = "Waiting for friend to join...";
+        roomDisplay.innerText = `Room: ${myRoomCode}`;
+        statusText.innerText = "Waiting for friend...";
     }
     
     else if (data.type === "game_start") {
@@ -149,35 +149,23 @@ socket.onmessage = (event) => {
         gameControls.classList.remove('hidden'); 
         chatBox.classList.remove('hidden'); 
         
-        roomDisplay.innerText = `ROOM: ${myRoomCode} | ${playerName} vs ${opponentName}`;
-        
-        if (myRole === 'X') {
-            statusText.innerText = "Game Started! Your turn.";
-        } else {
-            statusText.innerText = `Game Started! Waiting for ${opponentName}...`;
-        }
+        roomDisplay.innerText = `Room: ${myRoomCode} | ${playerName} vs ${opponentName}`;
+        statusText.innerText = myRole === 'X' ? "Game Started! Your Turn." : `Game Started! Waiting for ${opponentName}...`;
         resetBoard(); 
     }
     
     else if (data.type === "chat") {
         const msgElement = document.createElement('div');
         msgElement.classList.add('chat-message');
-        
-        // Use CSS variables for sender names
         const senderColor = data.sender === playerName ? 'var(--accent-x)' : 'var(--accent-o)';
-        
-        msgElement.innerHTML = `<span class="chat-sender" style="color: ${senderColor}">${data.sender}:</span> ${data.message}`;
+        msgElement.innerHTML = `<span style="color: ${senderColor}">${data.sender}:</span> ${data.message}`;
         chatMessages.appendChild(msgElement);
         chatMessages.scrollTop = chatMessages.scrollHeight;
     }
     
     else if (data.type === "restart") {
         resetBoard();
-        if (myRole === 'X') {
-            statusText.innerText = "Game Restarted! Your turn.";
-        } else {
-            statusText.innerText = `Game Restarted! Waiting for ${opponentName}...`;
-        }
+        statusText.innerText = myRole === 'X' ? "Rematch! Your Turn." : `Rematch! Waiting for ${opponentName}...`;
     }
     
     else if (data.type === "error") {
@@ -185,15 +173,9 @@ socket.onmessage = (event) => {
     }
     
     else if (data.type === "player_left") {
-        statusText.innerText = `${opponentName} left. Game paused.`;
+        statusText.innerText = `${opponentName} left the game.`;
         gameActive = false; 
-        restartBtn.style.display = 'none'; 
-        
-        const msgElement = document.createElement('div');
-        msgElement.classList.add('chat-message');
-        msgElement.innerHTML = `<em style="color: var(--danger-color);">${opponentName} has left the room.</em>`;
-        chatMessages.appendChild(msgElement);
-        chatMessages.scrollTop = chatMessages.scrollHeight;
+        resultOverlay.classList.add('hidden'); 
     }
     
     else if (data.type === "move") {
@@ -202,25 +184,16 @@ socket.onmessage = (event) => {
         currentSymbol = data.symbol === 'X' ? 'O' : 'X';
         
         if (gameActive) {
-            if (currentSymbol === myRole) {
-                statusText.innerText = "Your turn!";
-            } else {
-                statusText.innerText = `Waiting for ${opponentName}...`;
-            }
+            statusText.innerText = currentSymbol === myRole ? "Your Turn!" : `Waiting for ${opponentName}...`;
             checkWin();
         }
     }
 };
 
 const winningConditions = [
-    { combo: [0, 1, 2], class: 'row-1' },
-    { combo: [3, 4, 5], class: 'row-2' },
-    { combo: [6, 7, 8], class: 'row-3' },
-    { combo: [0, 3, 6], class: 'col-1' },
-    { combo: [1, 4, 7], class: 'col-2' },
-    { combo: [2, 5, 8], class: 'col-3' },
-    { combo: [0, 4, 8], class: 'diag-1' },
-    { combo: [2, 4, 6], class: 'diag-2' }
+    { combo: [0, 1, 2], class: 'row-1' }, { combo: [3, 4, 5], class: 'row-2' }, { combo: [6, 7, 8], class: 'row-3' },
+    { combo: [0, 3, 6], class: 'col-1' }, { combo: [1, 4, 7], class: 'col-2' }, { combo: [2, 5, 8], class: 'col-3' },
+    { combo: [0, 4, 8], class: 'diag-1' }, { combo: [2, 4, 6], class: 'diag-2' }
 ];
 
 function checkWin() {
@@ -229,9 +202,7 @@ function checkWin() {
 
     for (let i = 0; i < winningConditions.length; i++) {
         const [a, b, c] = winningConditions[i].combo;
-        if (cells[a].innerText !== "" && 
-            cells[a].innerText === cells[b].innerText && 
-            cells[a].innerText === cells[c].innerText) {
+        if (cells[a].innerText !== "" && cells[a].innerText === cells[b].innerText && cells[a].innerText === cells[c].innerText) {
             roundWon = true;
             winningClass = winningConditions[i].class; 
             break;
@@ -240,40 +211,37 @@ function checkWin() {
     
     if (roundWon) {
         const winner = currentSymbol === 'X' ? 'O' : 'X';
-        
-        if (winner === 'X') {
-            strike.style.background = 'var(--accent-x)'; 
-        } else {
-            strike.style.background = 'var(--accent-o)'; 
-        }
-        
-        if (winner === myRole) {
-            statusText.innerText = "YOU WIN! 🎉";
-            statusText.style.color = 'var(--accent-x)';
-        } else {
-            statusText.innerText = `${opponentName.toUpperCase()} WINS! 😢`;
-            statusText.style.color = 'var(--accent-o)';
-        }
-        
-        strike.className = `strike ${winningClass}`;
         gameActive = false;
+        
+        // CINEMATIC CLAY OVERLAY LOGIC
+        setTimeout(() => {
+            if (winner === myRole) {
+                resultTitle.innerText = "YOU WIN! 🎉";
+                resultTitle.style.color = 'var(--accent-x)';
+            } else {
+                resultTitle.innerText = "YOU LOSE! 😢";
+                resultTitle.style.color = 'var(--accent-o)';
+            }
+            resultOverlay.classList.remove('hidden');
+        }, 500); 
+
+        strike.style.backgroundColor = winner === 'X' ? 'var(--accent-x)' : 'var(--accent-o)';
+        strike.className = `strike ${winningClass}`;
         
     } else if ([...cells].every(cell => cell.innerText !== "")) {
-        statusText.innerText = "IT'S A DRAW!";
-        statusText.style.color = 'var(--text-color)';
         gameActive = false;
+        setTimeout(() => {
+            resultTitle.innerText = "STALEMATE!";
+            resultTitle.style.color = 'var(--secondary-color)';
+            resultOverlay.classList.remove('hidden');
+        }, 400);
     }
 }
 
 cells.forEach(cell => {
     cell.addEventListener('click', () => {
         if (cell.innerText === "" && gameActive && currentSymbol === myRole) {
-            const moveData = { 
-                action: "move", 
-                index: cell.getAttribute('data-index'), 
-                symbol: myRole 
-            };
-            socket.send(JSON.stringify(moveData));
+            socket.send(JSON.stringify({ action: "move", index: cell.getAttribute('data-index'), symbol: myRole }));
         }
     });
 });

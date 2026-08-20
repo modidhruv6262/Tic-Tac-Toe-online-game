@@ -7,7 +7,7 @@
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <!-- NEW: Theme Toggle Button visible everywhere -->
+    <!-- THEME CHANGER IS BACK -->
     <button id="themeToggle" class="clay theme-btn">🌙 Dark</button>
 
     <h1>Tic-Tac-Toe</h1>
@@ -23,7 +23,7 @@
         <button id="createBtn" class="clay btn-primary">Create New Game</button>
         <p>OR</p>
         <input type="text" id="codeInput" placeholder="Enter 5-digit code" maxlength="5" class="clay">
-        <button id="joinBtn" class="clay btn-primary">Join Game</button>
+        <button id="joinBtn" class="clay btn-secondary">Join Game</button>
         <h3 id="lobbyMessage"></h3>
     </div>
 
@@ -35,13 +35,11 @@
             <button id="exitBtn" class="clay btn-danger">Exit Room</button>
         </div>
 
-        <h2 id="statusText">Waiting for friend to join...</h2>
+        <h2 id="statusText">Waiting for friend...</h2>
         
         <div id="gameLayout">
-            
             <div id="board" class="board clay">
                 <div id="strike" class="strike hidden"></div>
-                <!-- Notice the new "clay" class on the cells -->
                 <div class="cell clay" data-index="0"></div>
                 <div class="cell clay" data-index="1"></div>
                 <div class="cell clay" data-index="2"></div>
@@ -60,7 +58,14 @@
                     <button id="sendChatBtn" class="clay btn-primary">Send</button>
                 </div>
             </div>
+        </div>
+    </div>
 
+    <!-- NEW: Cinematic Clay Overlay for Wins/Losses -->
+    <div id="resultOverlay" class="hidden">
+        <div class="clay-card clay result-card">
+            <h1 id="resultTitle">VICTORY!</h1>
+            <button id="overlayRestartBtn" class="clay btn-primary">Play Again</button>
         </div>
     </div>
 
