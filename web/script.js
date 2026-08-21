@@ -46,14 +46,14 @@ const overlayRestartBtn = document.getElementById('overlayRestartBtn');
 const overlayHubBtn = document.getElementById('overlayHubBtn');
 
 // --- STATE VARIABLES ---
-let currentMode = ''; // 'bot' or 'friend'
+let currentMode = ''; 
 let currentSymbol = 'X'; 
-let myRole = ''; // 'Host' or 'Guest'
+let myRole = ''; 
 let gameActive = false; 
 let myRoomCode = '';
 let playerName = '';
 let opponentName = '';
-let botDifficulty = 2; // 1: Easy, 2: Medium, 3: Hard
+let botDifficulty = 2; 
 
 // --- DIFFICULTY SLIDER LOGIC ---
 const diffNames = { 1: "Easy", 2: "Medium", 3: "Hard (Unbeatable)" };
@@ -149,6 +149,7 @@ joinBtn.addEventListener('click', () => {
 leaveHubBtn.addEventListener('click', () => {
     if (currentMode === 'friend') socket.send(JSON.stringify({ action: "leave" }));
     hideChat();
+    chatMessages.innerHTML = ''; // <-- CHAT RESET FIX
     showScreen(modeScreen);
 });
 
@@ -444,6 +445,7 @@ socket.onmessage = (event) => {
         statusText.innerText = `${opponentName} left.`;
         gameActive = false; 
         hideChat();
+        chatMessages.innerHTML = ''; // <-- CHAT RESET FIX
         showScreen(modeScreen);
         alert(`${opponentName} disconnected.`);
     }
