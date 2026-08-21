@@ -218,7 +218,186 @@ button:active {
 .strike.diag-1 { top: 50%; left: -10%; width: 120%; height: 14px; margin-top: -7px; transform: rotate(45deg); }
 .strike.diag-2 { top: 50%; left: -10%; width: 120%; height: 14px; margin-top: -7px; transform: rotate(-45deg); }
 
-/* --- HEAVY 3D LUDO ARENA --- */
+/* ========================================================= */
+/* --- RESTORED ORIGINAL HUB & MENU GRIDS ---                */
+/* ========================================================= */
+.subtitle { font-weight: 800; opacity: 0.7; margin: -10px 0 10px 0; }
+.mt-10 { margin-top: 15px; }
+.small-btn { padding: 10px 15px; font-size: 0.9rem; max-width: 150px; }
+
+.mode-grid { display: flex; flex-direction: column; gap: 15px; width: 100%; }
+.mode-btn { padding: 20px; font-size: 1.3rem; max-width: 100%; }
+
+.hub-card { max-width: 600px !important; }
+.role-banner { color: var(--primary-color); background: rgba(0,0,0,0.05); padding: 10px 20px; border-radius: 15px; width: 100%; }
+[data-theme="dark"] .role-banner { background: rgba(255,255,255,0.05); }
+
+.game-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: 20px;
+    width: 100%;
+    margin-top: 10px;
+}
+
+.game-card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 25px 15px;
+    gap: 10px;
+    cursor: pointer;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    position: relative;
+}
+
+.game-card:hover:not(.locked-game) {
+    transform: translateY(-5px) scale(1.05);
+    box-shadow: var(--clay-outer-shadow), 0 10px 20px rgba(0,0,0,0.1);
+}
+
+.game-card:active:not(.locked-game) {
+    transform: scale(0.95);
+    box-shadow: var(--clay-inset-shadow) !important;
+}
+
+.game-icon { font-size: 3rem; }
+.game-card h3 { font-size: 1.1rem; margin: 0; font-weight: 900; }
+
+.locked-game { opacity: 0.5; cursor: not-allowed; filter: grayscale(0.5); }
+.badge {
+    position: absolute;
+    top: -10px;
+    right: -10px;
+    background: var(--danger-color);
+    color: white;
+    font-size: 0.7rem;
+    font-weight: 900;
+    padding: 5px 10px;
+    border-radius: 10px;
+    text-transform: uppercase;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+}
+
+.hub-controls { display: flex; width: 100%; justify-content: flex-start; margin-top: 10px; }
+
+/* --- DIFFICULTY SLIDER --- */
+.difficulty-box {
+    width: 100%;
+    padding: 15px 20px;
+    border-radius: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    box-shadow: var(--clay-inset-shadow);
+    background: var(--clay-bg);
+}
+
+.diff-label { font-weight: 900; font-size: 1rem; }
+#diffLabelText { color: var(--primary-color); }
+
+.clay-slider {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 100%;
+    height: 12px;
+    border-radius: 10px;
+    background: rgba(0, 0, 0, 0.15);
+    outline: none;
+    box-shadow: var(--clay-inset-shadow);
+    cursor: pointer;
+}
+
+.clay-slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    background: var(--primary-color);
+    box-shadow: var(--clay-outer-shadow);
+    cursor: pointer;
+    transition: transform 0.15s ease;
+}
+
+.clay-slider::-webkit-slider-thumb:hover { transform: scale(1.15); }
+.slider-marks { display: flex; justify-content: space-between; font-size: 0.8rem; font-weight: 800; opacity: 0.8; }
+
+
+/* ========================================================= */
+/* --- RESTORED GLOBAL CHAT SIDEBAR ---                      */
+/* ========================================================= */
+#chatBox { 
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    box-sizing: border-box;
+    transition: transform 0.3s ease;
+}
+
+.chat-header {
+    margin: 0 0 10px 0;
+    font-size: 1.2rem;
+    color: var(--primary-color);
+    font-weight: 900;
+}
+
+#chatMessages {
+    width: 100%; 
+    flex: 1; 
+    border-radius: 20px; 
+    padding: 15px; 
+    overflow-y: auto; 
+    display: flex; 
+    flex-direction: column; 
+    gap: 10px; 
+    text-align: left;
+    background-color: var(--clay-bg); 
+    box-shadow: var(--clay-inset-shadow);
+    margin-bottom: 12px;
+}
+
+.chat-message { font-size: 1rem; font-weight: 800; word-wrap: break-word; }
+.chat-input-area { display: flex; gap: 10px; width: 100%; align-items: center; }
+#chatInput { flex: 1; padding: 12px 15px; text-transform: none; font-size: 0.95rem; height: 48px; }
+#sendChatBtn { width: auto; padding: 12px 18px; font-size: 0.95rem; height: 48px; display: flex; align-items: center; justify-content: center; }
+
+@media (max-width: 849px) {
+    #chatBox { 
+        padding: 20px; 
+        width: 90vw; 
+        max-width: 400px; 
+        height: 400px;
+        margin: 20px auto; 
+        border-radius: 35px;
+    }
+}
+
+@media (min-width: 850px) {
+    #chatBox {
+        position: fixed;
+        top: 0;
+        right: 0;
+        width: 350px;
+        height: 100vh;
+        border-radius: 35px 0 0 35px; 
+        padding: 30px 20px;
+        margin: 0;
+        z-index: 100;
+        box-shadow: -10px 0 30px rgba(0,0,0,0.2);
+        background: rgba(245, 247, 255, 0.95);
+        backdrop-filter: blur(10px);
+    }
+
+    [data-theme="dark"] #chatBox {
+        background: rgba(30, 30, 47, 0.95);
+    }
+}
+
+/* ========================================================= */
+/* --- NEW: HEAVY 3D LUDO ARENA ---                          */
+/* ========================================================= */
 #ludoWrapper {
     display: flex;
     flex-direction: column;
@@ -352,7 +531,7 @@ button:active {
     border-radius: 50%;
     box-shadow: 2px 5px 10px rgba(0,0,0,0.4), inset -3px -5px 10px rgba(0,0,0,0.3), inset 3px 5px 10px rgba(255,255,255,0.6);
     cursor: pointer; 
-    transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275), box-shadow 0.2s;
+    transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275), box-shadow 0.2s, width 0.3s, height 0.3s;
     position: relative; 
     z-index: 10;
 }
@@ -361,18 +540,22 @@ button:active {
     transform: scale(0.9); 
 }
 
-/* Playable Colors */
+/* Stacking Logic */
+.ludo-cell[data-pawns="2"] .pawn { width: 45%; height: 45%; margin: 2%; }
+.ludo-cell[data-pawns="3"] .pawn { width: 40%; height: 40%; margin: 2%; }
+.ludo-cell[data-pawns="4"] .pawn { width: 35%; height: 35%; margin: 2%; }
+
+/* Colors */
 .pawn.red { background: radial-gradient(circle at 30% 30%, #ff7686, #c23616); }
 .pawn.blue { background: radial-gradient(circle at 30% 30%, #74b9ff, #0984e3); }
-
-/* Disabled Ghost Colors (for 2 Player Mode) */
 .pawn.green { background: radial-gradient(circle at 30% 30%, #55efc4, #00b894); opacity: 0.15; cursor: not-allowed; } 
 .pawn.yellow { background: radial-gradient(circle at 30% 30%, #ffeaa7, #f39c12); opacity: 0.15; cursor: not-allowed; } 
 
-/* Active Glow Animation for Legal Moves */
+/* Glowing Move Animation */
 .movable-glow {
     animation: pulseGlow 1s infinite alternate;
     cursor: pointer !important;
+    z-index: 20;
 }
 
 @keyframes pulseGlow {
@@ -397,94 +580,5 @@ button:active {
 
 .result-card { padding: 60px 40px; }
 
-#chatBox { 
-    position: fixed; 
-    top: 0; 
-    right: 0; 
-    width: 350px; 
-    height: 100vh; 
-    border-radius: 35px 0 0 35px; 
-    padding: 30px 20px; 
-    z-index: 100; 
-    box-shadow: -10px 0 30px rgba(0,0,0,0.2); 
-    background: rgba(245, 247, 255, 0.95); 
-    backdrop-filter: blur(10px); 
-    display: flex; 
-    flex-direction: column; 
-}
-
-[data-theme="dark"] #chatBox { background: rgba(30, 30, 47, 0.95); }
-
-#chatMessages { 
-    flex: 1; 
-    border-radius: 20px; 
-    padding: 15px; 
-    overflow-y: auto; 
-    text-align: left; 
-    background-color: var(--clay-bg); 
-    box-shadow: var(--clay-inset-shadow); 
-    margin-bottom: 12px; 
-}
-
-.chat-input-area { display: flex; gap: 10px; width: 100%; align-items: center; }
-
-@media (max-width: 849px) { 
-    #chatBox { 
-        position: static; 
-        width: 90vw; 
-        height: 400px; 
-        margin: 20px auto; 
-        border-radius: 35px; 
-    } 
-}
-
-@media (min-width: 850px) { 
-    body.chat-active { padding-right: 350px; } 
-}
-
-.hub-card, .game-grid, .mode-grid { width: 100%; }
-.game-card { padding: 25px 15px; cursor: pointer; }
-.game-icon { font-size: 3rem; }
-.locked-game { opacity: 0.5; cursor: not-allowed; filter: grayscale(0.5); }
-
-/* --- DIFFICULTY SLIDER --- */
-.difficulty-box {
-    width: 100%;
-    padding: 15px 20px;
-    border-radius: 20px;
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-    box-shadow: var(--clay-inset-shadow);
-    background: var(--clay-bg);
-}
-
-.diff-label { font-weight: 900; font-size: 1rem; }
-#diffLabelText { color: var(--primary-color); }
-
-.clay-slider {
-    -webkit-appearance: none;
-    appearance: none;
-    width: 100%;
-    height: 12px;
-    border-radius: 10px;
-    background: rgba(0, 0, 0, 0.15);
-    outline: none;
-    box-shadow: var(--clay-inset-shadow);
-    cursor: pointer;
-}
-
-.clay-slider::-webkit-slider-thumb {
-    -webkit-appearance: none;
-    appearance: none;
-    width: 26px;
-    height: 26px;
-    border-radius: 50%;
-    background: var(--primary-color);
-    box-shadow: var(--clay-outer-shadow);
-    cursor: pointer;
-    transition: transform 0.15s ease;
-}
-
-.clay-slider::-webkit-slider-thumb:hover { transform: scale(1.15); }
-.slider-marks { display: flex; justify-content: space-between; font-size: 0.8rem; font-weight: 800; opacity: 0.8; }
+#statusText { font-size: clamp(1.3rem, 5vw, 1.6rem); font-weight: 900; margin: 10px 0; color: var(--primary-color); }
+#roomDisplay { font-size: clamp(1rem, 4vw, 1.2rem); margin: 0; font-weight: 900; opacity: 0.8; }

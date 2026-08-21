@@ -193,7 +193,7 @@ function startGameUI(gameType) {
 }
 
 // ==========================================
-// PHASE 3: THE LUDO BRAIN (LOGIC & MOVEMENT)
+// PHASE 3: THE SMART LUDO BRAIN
 // ==========================================
 let currentLudoTurn = 'Host'; 
 let diceRolledValue = 0;
@@ -273,21 +273,30 @@ function processTurnMoves(role) {
         }
     });
 
+    // Handle skipped turns
     if (movableTokens.length === 0) {
-        statusText.innerText = "No valid moves!";
+        statusText.innerText = "No valid moves! Turn skipped.";
         setTimeout(() => { switchLudoTurn(role); }, 1500);
         return;
     }
 
+    // THE SMART FIX: If all movable tokens are in the exact same spot, auto-move one to save user confusion!
+    const allSamePosition = movableTokens.every(idx => tokens[idx] === tokens[movableTokens[0]]);
+    if (allSamePosition && role === myRole) {
+        statusText.innerText = "Auto-moving pawn...";
+        setTimeout(() => { executeMove(role, movableTokens[0]); }, 600);
+        return;
+    }
+
     if (role === myRole) {
-        statusText.innerText = "Click a glowing pawn to move!";
+        statusText.innerText = "Action required: Click a glowing pawn!";
         movableTokens.forEach(idx => {
             const color = role === 'Host' ? 'red' : 'blue';
             const pawn = document.getElementById(`${color}-pawn-${idx}`);
             pawn.classList.add('movable-glow');
             
             pawn.onclick = () => {
-                // Remove listeners/glows from all
+                // Remove listeners/glows from all to prevent double-clicks
                 for(let i=0; i<4; i++) { 
                     const p = document.getElementById(`${color}-pawn-${i}`);
                     p.classList.remove('movable-glow'); 
@@ -297,11 +306,17 @@ function processTurnMoves(role) {
             };
         });
     } else if (currentMode === 'bot') {
-        // Bot AI: Prioritize moving out of base, or moving closest to finish
+        // Bot AI Logic
         setTimeout(() => {
             let chosenToken = movableTokens[0];
+            // Prefer bringing a new token out of base
             if (movableTokens.some(idx => tokens[idx] === -1)) {
                 chosenToken = movableTokens.find(idx => tokens[idx] === -1);
+            } else {
+                // Otherwise move the token furthest along the track
+                chosenToken = movableTokens.reduce((maxIdx, currentIdx) => 
+                    tokens[currentIdx] > tokens[maxIdx] ? currentIdx : maxIdx
+                , movableTokens[0]);
             }
             executeMove('Guest', chosenToken);
         }, 1000);
@@ -363,7 +378,7 @@ function executeMove(role, tokenIndex) {
             if (role === 'Guest' && currentMode === 'bot') {
                 setTimeout(() => { 
                     animateDice(Math.floor(Math.random() * 6) + 1, 'Guest'); 
-                }, 1000);
+                }, 1500);
             }
         } else {
             switchLudoTurn(role);
@@ -416,6 +431,12 @@ function movePawnDOM(role, tokenIndex, pos) {
         let targetCell = cellId === 'center' ? document.querySelector('.center-home') : document.getElementById(`cell-${cellId}`);
         targetCell.appendChild(pawn);
     }
+    
+    // UI Fix: Update stacking tracker across all cells so they shrink appropriately
+    document.querySelectorAll('.ludo-cell, .center-home').forEach(cell => {
+        const pawnCount = cell.querySelectorAll('.pawn').length;
+        cell.setAttribute('data-pawns', pawnCount);
+    });
 }
 
 function drawLudoBoard() {
