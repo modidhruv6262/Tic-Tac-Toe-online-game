@@ -233,54 +233,90 @@ function animateDice(finalValue, rollerRole) {
 }
 
 // ==========================================
-// PHASE 1: LUDO BOARD RENDERER
+// PHASE 1.5: UPGRADED LUDO BOARD RENDERER
 // ==========================================
 function drawLudoBoard() {
     ludoBoard.innerHTML = ''; 
+    
     const bases = [
-        { id: 'green-base', class: 'bg-green ludo-base', colStart: 1, colEnd: 7, rowStart: 1, rowEnd: 7 },
-        { id: 'blue-base', class: 'bg-blue ludo-base', colStart: 10, colEnd: 16, rowStart: 1, rowEnd: 7 },
-        { id: 'red-base', class: 'bg-red ludo-base', colStart: 1, colEnd: 7, rowStart: 10, rowEnd: 16 },
-        { id: 'yellow-base', class: 'bg-yellow ludo-base', colStart: 10, colEnd: 16, rowStart: 10, rowEnd: 16 },
-        { id: 'center-home', class: 'bg-home', colStart: 7, colEnd: 10, rowStart: 7, rowEnd: 10 }
+        { id: 'green', class: 'bg-green', colStart: 1, colEnd: 7, rowStart: 1, rowEnd: 7 },
+        { id: 'blue', class: 'bg-blue', colStart: 10, colEnd: 16, rowStart: 1, rowEnd: 7 },
+        { id: 'red', class: 'bg-red', colStart: 1, colEnd: 7, rowStart: 10, rowEnd: 16 },
+        { id: 'yellow', class: 'bg-yellow', colStart: 10, colEnd: 16, rowStart: 10, rowEnd: 16 }
     ];
 
+    // 1. Render the 4 Corner Bases & Pawns
     bases.forEach(b => {
-        const div = document.createElement('div');
-        div.className = b.class;
-        div.style.gridColumn = `${b.colStart} / ${b.colEnd}`;
-        div.style.gridRow = `${b.rowStart} / ${b.rowEnd}`;
-        if(b.id !== 'center-home') {
-            for(let i=0; i<4; i++) {
-                const slot = document.createElement('div');
-                slot.className = 'ludo-token-slot';
-                div.appendChild(slot);
-            }
+        const baseDiv = document.createElement('div');
+        baseDiv.className = `ludo-base ${b.class}`;
+        baseDiv.style.gridColumn = `${b.colStart} / ${b.colEnd}`;
+        baseDiv.style.gridRow = `${b.rowStart} / ${b.rowEnd}`;
+        
+        const innerDiv = document.createElement('div');
+        innerDiv.className = 'ludo-base-inner';
+
+        for(let i=0; i<4; i++) {
+            const slot = document.createElement('div');
+            slot.className = 'ludo-token-slot';
+            
+            // Create the physical pawn
+            const pawn = document.createElement('div');
+            pawn.className = `pawn ${b.id}`;
+            pawn.id = `${b.id}-pawn-${i}`;
+            
+            // Style them statically in base for now
+            pawn.style.position = 'relative'; 
+            
+            slot.appendChild(pawn);
+            innerDiv.appendChild(slot);
         }
-        ludoBoard.appendChild(div);
+        
+        baseDiv.appendChild(innerDiv);
+        ludoBoard.appendChild(baseDiv);
     });
 
+    // 2. Render the Center Finish Zone
+    const centerHome = document.createElement('div');
+    centerHome.className = 'center-home';
+    centerHome.style.gridColumn = '7 / 10';
+    centerHome.style.gridRow = '7 / 10';
+    centerHome.innerHTML = '🏆'; 
+    ludoBoard.appendChild(centerHome);
+
+    // 3. Render the Track Cells
     for (let row = 0; row < 15; row++) {
         for (let col = 0; col < 15; col++) {
             const inTopLeft = row < 6 && col < 6;
             const inTopRight = row < 6 && col > 8;
             const inBottomLeft = row > 8 && col < 6;
             const inBottomRight = row > 8 && col > 8;
-            const inCenter = row > 5 && row < 9 && col > 5 && col < 9;
+            const inCenter = row >= 6 && row <= 8 && col >= 6 && col <= 8;
 
+            // Only draw cells if they aren't part of a corner base or the center
             if (!inTopLeft && !inTopRight && !inBottomLeft && !inBottomRight && !inCenter) {
                 const cell = document.createElement('div');
                 cell.className = 'ludo-cell';
                 cell.style.gridColumn = `${col + 1}`;
                 cell.style.gridRow = `${row + 1}`;
+                cell.id = `cell-${row}-${col}`; // Maps coordinates for movement later
 
-                if (row === 7 && col > 0 && col < 6) cell.classList.add('bg-red');
-                if (row === 7 && col > 8 && col < 14) cell.classList.add('bg-blue');
-                if (col === 7 && row > 0 && row < 6) cell.classList.add('bg-green');
-                if (col === 7 && row > 8 && row < 14) cell.classList.add('bg-yellow');
+                // Color the Starting Tiles
+                if (row === 6 && col === 1) cell.classList.add('bg-red', 'start-cell');
+                if (row === 8 && col === 13) cell.classList.add('bg-blue', 'start-cell');
+                if (row === 1 && col === 8) cell.classList.add('bg-green', 'start-cell');
+                if (row === 13 && col === 6) cell.classList.add('bg-yellow', 'start-cell');
 
-                const isSafe = (row === 6 && col === 1) || (row === 13 && col === 6) || (row === 8 && col === 13) || (row === 1 && col === 8);
-                if(isSafe) cell.innerHTML = '<span class="safe-zone">⭐</span>';
+                // Color the Home stretches
+                if (row === 7 && col >= 1 && col <= 5) cell.classList.add('bg-red');
+                if (row === 7 && col >= 9 && col <= 13) cell.classList.add('bg-blue');
+                if (col === 7 && row >= 1 && row <= 5) cell.classList.add('bg-green');
+                if (col === 7 && row >= 9 && row <= 13) cell.classList.add('bg-yellow');
+
+                // Add stars to safe zones (Start tiles + Standard Safe tiles)
+                const isSafeTile = (row === 2 && col === 6) || (row === 6 && col === 12) || (row === 12 && col === 8) || (row === 8 && col === 2);
+                if (isSafeTile || cell.classList.contains('start-cell')) {
+                    cell.innerHTML = '<span class="safe-star">⭐</span>';
+                }
 
                 ludoBoard.appendChild(cell);
             }

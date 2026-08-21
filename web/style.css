@@ -487,3 +487,152 @@ button:active {
     background: rgba(255, 255, 255, 0.8);
     box-shadow: var(--clay-outer-shadow);
 }
+
+/* --- LUDO GAME ENGINE STYLES --- */
+#ludoWrapper {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 20px;
+    width: 100%;
+}
+
+.ludo-dashboard {
+    padding: 15px 30px;
+    border-radius: 20px;
+    flex-direction: row;
+    justify-content: space-between;
+    width: 100%;
+    max-width: 450px;
+}
+
+.dice-block {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    width: 100%;
+}
+
+.dice-cube {
+    font-size: 2.5rem;
+    width: 60px;
+    height: 60px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    border-radius: 15px;
+    background: var(--clay-bg);
+}
+
+/* Upgraded Ludo Board container */
+.ludo-board {
+    display: grid;
+    grid-template-columns: repeat(15, 1fr);
+    grid-template-rows: repeat(15, 1fr);
+    width: 95vw;
+    max-width: 450px;
+    height: 95vw;
+    max-height: 450px;
+    gap: 0; /* Removed gap to make the track look connected */
+    background-color: #ffffff; /* Solid white background for contrast */
+    padding: 15px;
+    border-radius: 20px;
+    box-shadow: var(--clay-outer-shadow);
+}
+
+[data-theme="dark"] .ludo-board {
+    background-color: #1e1e2f;
+}
+
+/* Crisp Track Cells */
+.ludo-cell {
+    border: 1px solid rgba(0, 0, 0, 0.15);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    position: relative;
+}
+
+[data-theme="dark"] .ludo-cell {
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* Upgraded Bases with white inner pocket */
+.ludo-base {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 15%;
+    border-radius: 12px;
+    border: 2px solid rgba(0, 0, 0, 0.2);
+}
+
+.ludo-base-inner {
+    background: #ffffff;
+    width: 100%;
+    height: 100%;
+    border-radius: 10px;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    grid-template-rows: 1fr 1fr;
+    gap: 15%;
+    padding: 15%;
+    box-shadow: var(--clay-inset-shadow);
+}
+
+[data-theme="dark"] .ludo-base-inner {
+    background: #2a2a3f;
+}
+
+/* Vibrant Base & Track Colors */
+.bg-red { background-color: #ff4757 !important; }
+.bg-blue { background-color: #1e90ff !important; }
+.bg-green { background-color: #2ed573 !important; }
+.bg-yellow { background-color: #ffa502 !important; }
+
+/* The Center Finish Line */
+.center-home {
+    background: linear-gradient(135deg, #ff4757 25%, #1e90ff 25% 50%, #ffa502 50% 75%, #2ed573 75%);
+    border: 2px solid rgba(0,0,0,0.3);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 2rem;
+}
+
+.safe-star { font-size: 1.1rem; opacity: 0.9; }
+
+/* --- THE 3D PAWNS --- */
+.ludo-token-slot {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.pawn {
+    width: 75%;
+    height: 75%;
+    border-radius: 50%;
+    box-shadow: 2px 5px 10px rgba(0,0,0,0.4), inset -3px -5px 10px rgba(0,0,0,0.3), inset 3px 5px 10px rgba(255,255,255,0.6);
+    cursor: pointer;
+    transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275), box-shadow 0.2s;
+    position: absolute; /* Lets them sit inside cells freely */
+    z-index: 10;
+}
+
+.pawn:hover {
+    transform: scale(1.2) translateY(-4px);
+    box-shadow: 2px 10px 15px rgba(0,0,0,0.5), inset -3px -5px 10px rgba(0,0,0,0.3), inset 3px 5px 10px rgba(255,255,255,0.8);
+}
+
+.pawn:active {
+    transform: scale(0.95);
+}
+
+/* Gradient coloring to make them look like shiny marbles/clay */
+.pawn.red { background: radial-gradient(circle at 30% 30%, #ff7686, #e84118); }
+.pawn.blue { background: radial-gradient(circle at 30% 30%, #74b9ff, #0984e3); }
+.pawn.green { background: radial-gradient(circle at 30% 30%, #55efc4, #00b894); opacity: 0.3; } /* Disabled for 2P */
+.pawn.yellow { background: radial-gradient(circle at 30% 30%, #ffeaa7, #f39c12); opacity: 0.3; } /* Disabled for 2P */
