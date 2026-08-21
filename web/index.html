@@ -56,15 +56,19 @@
         </div>
         
         <div class="game-grid">
+            <!-- Game 1 -->
             <div class="game-card clay" id="launchTicTacToe">
                 <div class="game-icon">❌⭕</div>
                 <h3>Tic-Tac-Toe</h3>
             </div>
-            <div class="game-card clay locked-game">
-                <div class="game-icon">🔴🟡</div>
-                <h3>Connect 4</h3>
-                <span class="badge">Coming Soon</span>
+            
+            <!-- Game 2: LUDO UNLOCKED -->
+            <div class="game-card clay" id="launchLudo">
+                <div class="game-icon">🎲</div>
+                <h3>Ludo (2P)</h3>
             </div>
+            
+            <!-- Game 3 -->
             <div class="game-card clay locked-game">
                 <div class="game-icon">✊✋✌️</div>
                 <h3>RPS</h3>
@@ -87,8 +91,9 @@
         <h2 id="statusText">Loading...</h2>
         
         <div id="gameLayout">
-            <!-- Board -->
-            <div id="board" class="board clay">
+            
+            <!-- GAME ENGINE 1: Tic Tac Toe Board -->
+            <div id="tictactoeBoard" class="board clay hidden">
                 <div id="strike" class="strike hidden"></div>
                 <div class="cell clay" data-index="0"></div>
                 <div class="cell clay" data-index="1"></div>
@@ -100,10 +105,24 @@
                 <div class="cell clay" data-index="7"></div>
                 <div class="cell clay" data-index="8"></div>
             </div>
+
+            <!-- GAME ENGINE 2: Ludo Board -->
+            <div id="ludoWrapper" class="hidden">
+                <div class="ludo-dashboard clay-card clay">
+                    <div class="dice-block">
+                        <div id="ludoDice" class="clay dice-cube">🎲</div>
+                        <button id="rollDiceBtn" class="clay btn-primary">Roll Dice</button>
+                    </div>
+                </div>
+                <div id="ludoBoard" class="ludo-board clay">
+                    <!-- JS will dynamically draw the 15x15 grid here -->
+                </div>
+            </div>
+
         </div>
     </div>
 
-    <!-- NEW: GLOBAL SIDEBAR CHAT -->
+    <!-- GLOBAL SIDEBAR CHAT -->
     <div id="chatBox" class="clay-card clay hidden">
         <h3 class="chat-header">Room Chat</h3>
         <div id="chatMessages" class="clay-inset"></div>

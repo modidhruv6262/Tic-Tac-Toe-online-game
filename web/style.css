@@ -391,3 +391,99 @@ button:active {
 
 .clay-slider::-webkit-slider-thumb:hover { transform: scale(1.15); }
 .slider-marks { display: flex; justify-content: space-between; font-size: 0.8rem; font-weight: 800; opacity: 0.8; }
+
+/* --- LUDO GAME ENGINE STYLES --- */
+#ludoWrapper {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 20px;
+    width: 100%;
+}
+
+.ludo-dashboard {
+    padding: 15px 30px;
+    border-radius: 20px;
+    flex-direction: row;
+    justify-content: space-between;
+    width: 100%;
+    max-width: 450px;
+}
+
+.dice-block {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    width: 100%;
+}
+
+.dice-cube {
+    font-size: 2.5rem;
+    width: 60px;
+    height: 60px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    border-radius: 15px;
+    background: var(--clay-bg);
+}
+
+.ludo-board {
+    display: grid;
+    grid-template-columns: repeat(15, 1fr);
+    grid-template-rows: repeat(15, 1fr);
+    width: 95vw;
+    max-width: 450px;
+    height: 95vw;
+    max-height: 450px;
+    gap: 2px;
+    padding: 10px;
+    border-radius: 25px;
+}
+
+.ludo-cell {
+    width: 100%;
+    height: 100%;
+    border-radius: 4px;
+    background: rgba(0, 0, 0, 0.05);
+    box-shadow: var(--clay-inset-shadow);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+[data-theme="dark"] .ludo-cell {
+    background: rgba(255, 255, 255, 0.02);
+}
+
+/* Ludo Bases (6x6 large zones) */
+.ludo-base {
+    box-shadow: var(--clay-inner-dark);
+    border-radius: 15px;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    grid-template-rows: 1fr 1fr;
+    gap: 15%;
+    padding: 15%;
+}
+
+.bg-red { background-color: #ff4757; }
+.bg-blue { background-color: #1e90ff; }
+.bg-green { background-color: #2ed573; opacity: 0.2; } /* Ghosted for 2P mode */
+.bg-yellow { background-color: #ffa502; opacity: 0.2; } /* Ghosted for 2P mode */
+.bg-home { background-color: var(--text-color); opacity: 0.1; }
+
+.safe-zone {
+    font-size: 0.8rem;
+    color: var(--text-color);
+    opacity: 0.5;
+}
+
+/* Base Tokens */
+.ludo-token-slot {
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.8);
+    box-shadow: var(--clay-outer-shadow);
+}

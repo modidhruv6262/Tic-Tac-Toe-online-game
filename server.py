@@ -26,14 +26,14 @@ async def game_handler(websocket):
                 await websocket.send(json.dumps({"type": "room_created", "room": room_code}))
                 
             elif action == "join":
-                room_code = data.get("room").upper()
+                room_code = data.get("room", "").upper()
                 if room_code in rooms and len(rooms[room_code]) == 1:
                     rooms[room_code].append(websocket) 
                     player_rooms[websocket] = room_code
                     player_names[websocket] = data.get("name", "Guest")
                     
-                    player1 = rooms[room_code][0] # Host
-                    player2 = rooms[room_code][1] # Guest
+                    player1 = rooms[room_code][0]
+                    player2 = rooms[room_code][1]
                     
                     p1_name = player_names.get(player1, "Host")
                     p2_name = player_names.get(player2, "Guest")
@@ -43,7 +43,6 @@ async def game_handler(websocket):
                 else:
                     await websocket.send(json.dumps({"type": "error", "message": "Invalid Code or Room Full."}))
             
-            # --- NEW: HOST REMOTE CONTROL ROUTING ---
             elif action == "launch_game":
                 room_code = player_rooms.get(websocket)
                 if room_code in rooms:
@@ -59,13 +58,23 @@ async def game_handler(websocket):
                     for ws in rooms[room_code]:
                         await ws.send(json.dumps({"type": "return_hub"}))
                         
-            # Standard Game Actions
             elif action == "move":
                 room_code = player_rooms.get(websocket)
                 if room_code in rooms:
                     for ws in rooms[room_code]:
                         await ws.send(json.dumps({"type": "move", "index": data.get("index"), "symbol": data.get("symbol")}))
             
+            # --- NEW: LUDO DICE ROUTING ---
+            elif action == "roll_dice":
+                room_code = player_rooms.get(websocket)
+                if room_code in rooms:
+                    for ws in rooms[room_code]:
+                        await ws.send(json.dumps({
+                            "type": "dice_rolled", 
+                            "roller": data.get("roller"), 
+                            "value": data.get("value")
+                        }))
+
             elif action == "chat":
                 room_code = player_rooms.get(websocket)
                 if room_code in rooms:
