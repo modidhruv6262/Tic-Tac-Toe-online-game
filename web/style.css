@@ -43,7 +43,7 @@
     transition: background-color 0.4s ease, color 0.4s ease; 
 }
 
-/* --- PERFECT CENTERING (Removed padding shift) --- */
+/* --- CENTER CONSOLES SHIFTED UPWARDS --- */
 body {
     font-family: 'Nunito', sans-serif;
     display: flex;
@@ -54,11 +54,12 @@ body {
     color: var(--text-color);
     margin: 0;
     min-height: 100vh;
-    padding: 20px; 
+    /* The 12vh at the end (bottom padding) acts as an invisible cushion 
+       pushing the center point of the screen slightly upwards */
+    padding: 20px 20px 12vh 20px; 
     overflow-x: hidden; 
 }
 
-/* --- BUTTON MOVED TO TOP LEFT --- */
 .theme-btn {
     position: absolute;
     top: 20px;
@@ -263,8 +264,6 @@ button:active {
 
 /* Desktop View: Full Height Sidebar overlaying right side */
 @media (min-width: 850px) {
-    /* REMOVED body.chat-active padding rules entirely so layout never shifts left */
-    
     #chatBox {
         position: fixed;
         top: 0;
@@ -276,8 +275,6 @@ button:active {
         margin: 0;
         z-index: 100;
         box-shadow: -10px 0 30px rgba(0,0,0,0.2);
-        
-        /* Optional: Gives it a slight glass effect so it blends nicely */
         background: rgba(245, 247, 255, 0.95);
         backdrop-filter: blur(10px);
     }
