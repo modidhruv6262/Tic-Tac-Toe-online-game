@@ -14,7 +14,7 @@
     <!-- 1. IDENTIFICATION -->
     <div id="nameScreen" class="clay-card clay">
         <h2>Welcome!</h2>
-        <input type="text" id="nameInput" placeholder="e.g., Dhruv" maxlength="12" class="clay">
+        <input type="text" id="nameInput" placeholder="e.g., Player" maxlength="12" class="clay">
         <button id="saveNameBtn" class="clay btn-primary">Continue</button>
     </div>
 
@@ -44,7 +44,7 @@
         <h2 id="hubRoleBanner" class="role-banner">Host: Pick a game!</h2>
         <h3 id="hubRoomDisplay"></h3>
 
-        <!-- BOT DIFFICULTY SLIDER CONTAINER -->
+        <!-- BOT DIFFICULTY SLIDER -->
         <div id="difficultyContainer" class="difficulty-box clay-inset hidden">
             <label for="difficultySlider" class="diff-label">Bot Difficulty: <span id="diffLabelText">Medium</span></label>
             <input type="range" id="difficultySlider" min="1" max="3" value="2" step="1" class="clay-slider">
@@ -56,20 +56,15 @@
         </div>
         
         <div class="game-grid">
-            <!-- Game 1 -->
             <div class="game-card clay" id="launchTicTacToe">
                 <div class="game-icon">❌⭕</div>
                 <h3>Tic-Tac-Toe</h3>
             </div>
-            
-            <!-- Game 2 (Placeholder) -->
             <div class="game-card clay locked-game">
                 <div class="game-icon">🔴🟡</div>
                 <h3>Connect 4</h3>
                 <span class="badge">Coming Soon</span>
             </div>
-            
-            <!-- Game 3 (Placeholder) -->
             <div class="game-card clay locked-game">
                 <div class="game-icon">✊✋✌️</div>
                 <h3>RPS</h3>
@@ -92,7 +87,7 @@
         <h2 id="statusText">Loading...</h2>
         
         <div id="gameLayout">
-            <!-- Tic Tac Toe Board -->
+            <!-- Board -->
             <div id="board" class="board clay">
                 <div id="strike" class="strike hidden"></div>
                 <div class="cell clay" data-index="0"></div>
@@ -105,19 +100,20 @@
                 <div class="cell clay" data-index="7"></div>
                 <div class="cell clay" data-index="8"></div>
             </div>
-
-            <!-- Global Room Chat -->
-            <div id="chatBox" class="clay-card clay hidden">
-                <div id="chatMessages" class="clay-inset"></div>
-                <div class="chat-input-area">
-                    <input type="text" id="chatInput" placeholder="Type a message..." maxlength="100" class="clay">
-                    <button id="sendChatBtn" class="clay btn-primary">Send</button>
-                </div>
-            </div>
         </div>
     </div>
 
-    <!-- CINEMATIC OVERLAY -->
+    <!-- NEW: GLOBAL SIDEBAR CHAT -->
+    <div id="chatBox" class="clay-card clay hidden">
+        <h3 class="chat-header">Room Chat</h3>
+        <div id="chatMessages" class="clay-inset"></div>
+        <div class="chat-input-area">
+            <input type="text" id="chatInput" placeholder="Type a message..." maxlength="100" class="clay">
+            <button id="sendChatBtn" class="clay btn-primary">Send</button>
+        </div>
+    </div>
+
+    <!-- RESULT OVERLAY -->
     <div id="resultOverlay" class="hidden">
         <div class="clay-card clay result-card">
             <h1 id="resultTitle">VICTORY!</h1>

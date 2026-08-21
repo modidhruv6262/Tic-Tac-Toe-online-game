@@ -86,6 +86,17 @@ function showScreen(screen) {
     screen.classList.remove('hidden');
 }
 
+// --- CHAT DISPLAY HELPERS ---
+function showChat() {
+    chatBox.classList.remove('hidden');
+    document.body.classList.add('chat-active');
+}
+
+function hideChat() {
+    chatBox.classList.add('hidden');
+    document.body.classList.remove('chat-active');
+}
+
 // --- 1. IDENTIFICATION ---
 nameInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') saveNameBtn.click(); });
 saveNameBtn.addEventListener('click', () => {
@@ -137,6 +148,7 @@ joinBtn.addEventListener('click', () => {
 // --- 4. HUB CONTROLS ---
 leaveHubBtn.addEventListener('click', () => {
     if (currentMode === 'friend') socket.send(JSON.stringify({ action: "leave" }));
+    hideChat();
     showScreen(modeScreen);
 });
 
@@ -154,12 +166,6 @@ launchTicTacToe.addEventListener('click', () => {
 function startGameUI() {
     showScreen(gameArea);
     gameControls.classList.remove('hidden');
-    
-    if (currentMode === 'friend') {
-        chatBox.classList.remove('hidden');
-    } else {
-        chatBox.classList.add('hidden');
-    }
     
     resetBoard();
     statusText.innerText = myRole === 'Host' ? "Game Started! Your Turn." : `Game Started! Waiting for ${opponentName}...`;
@@ -381,6 +387,7 @@ socket.onmessage = (event) => {
         hubRoomDisplay.innerText = `Room Code: ${myRoomCode}`;
         launchTicTacToe.classList.remove('locked-game'); 
         
+        showChat();
         showScreen(hubScreen);
     }
     
@@ -401,6 +408,8 @@ socket.onmessage = (event) => {
         }
         
         hubRoomDisplay.innerText = `Room Code: ${myRoomCode}`;
+        
+        showChat();
         showScreen(hubScreen);
     }
     
@@ -434,6 +443,7 @@ socket.onmessage = (event) => {
     else if (data.type === "player_left") {
         statusText.innerText = `${opponentName} left.`;
         gameActive = false; 
+        hideChat();
         showScreen(modeScreen);
         alert(`${opponentName} disconnected.`);
     }
