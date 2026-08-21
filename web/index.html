@@ -24,22 +24,45 @@
         <p class="subtitle">Choose your path:</p>
         <div class="mode-grid">
             <button id="vsBotBtn" class="clay btn-secondary mode-btn">🤖 Play vs. Bot</button>
-            <button id="vsFriendBtn" class="clay btn-primary mode-btn">👥 Play with Friend</button>
+            <button id="vsFriendBtn" class="clay btn-primary mode-btn">👥 Multiplayer</button>
         </div>
     </div>
 
-    <!-- 3. ROOM LOBBY -->
+    <!-- 3. MULTIPLAYER LOBBY SETUP -->
     <div id="lobbyScreen" class="clay-card clay hidden">
-        <h2>Multiplayer Room</h2>
-        <button id="createBtn" class="clay btn-primary">Create New Room</button>
-        <p class="subtitle">OR</p>
+        <h2>Multiplayer Lobby</h2>
+        
+        <div id="capacitySetup" style="width: 100%;">
+            <p class="subtitle">Create Room Size:</p>
+            <div class="mode-grid">
+                <button class="clay btn-secondary capacity-btn" data-cap="2">2 Players</button>
+                <button class="clay btn-secondary capacity-btn" data-cap="3">3 Players</button>
+                <button class="clay btn-secondary capacity-btn" data-cap="4">4 Players</button>
+            </div>
+            <p class="subtitle mt-10">OR</p>
+        </div>
+        
         <input type="text" id="codeInput" placeholder="Enter 4-digit code" maxlength="4" class="clay">
-        <button id="joinBtn" class="clay btn-secondary">Join Room</button>
+        <button id="joinBtn" class="clay btn-primary">Join Existing Room</button>
         <h3 id="lobbyMessage"></h3>
         <button id="backToModeBtn" class="clay btn-danger small-btn mt-10">← Back</button>
     </div>
 
-    <!-- 4. THE SHARED GAME HUB -->
+    <!-- 4. LIVE WAITING ROOM -->
+    <div id="waitingScreen" class="clay-card clay hidden">
+        <h2>Waiting Room</h2>
+        <h1 id="waitingRoomCode" style="font-size: 3rem; color: var(--primary-color); margin: 0;"></h1>
+        <p class="subtitle">Share this code with friends!</p>
+        
+        <div id="playerRoster" class="player-roster clay-inset" style="width: 100%; padding: 15px; border-radius: 15px; text-align: left; margin: 15px 0;">
+            <!-- JS will populate player names here -->
+        </div>
+        
+        <h3 id="waitingStatus">Waiting for players...</h3>
+        <button id="leaveWaitingBtn" class="clay btn-danger small-btn mt-10">Leave Lobby</button>
+    </div>
+
+    <!-- 5. THE SHARED GAME HUB -->
     <div id="hubScreen" class="clay-card clay hub-card hidden">
         <h2 id="hubRoleBanner" class="role-banner">Host: Pick a game!</h2>
         <h3 id="hubRoomDisplay"></h3>
@@ -56,19 +79,16 @@
         </div>
         
         <div class="game-grid">
-            <!-- Game 1 -->
             <div class="game-card clay" id="launchTicTacToe">
                 <div class="game-icon">❌⭕</div>
                 <h3>Tic-Tac-Toe</h3>
             </div>
             
-            <!-- Game 2: LUDO UNLOCKED -->
             <div class="game-card clay" id="launchLudo">
                 <div class="game-icon">🎲</div>
-                <h3>Ludo (2P)</h3>
+                <h3>Ludo</h3>
             </div>
             
-            <!-- Game 3 -->
             <div class="game-card clay locked-game">
                 <div class="game-icon">✊✋✌️</div>
                 <h3>RPS</h3>
@@ -81,7 +101,7 @@
         </div>
     </div>
 
-    <!-- 5. THE ACTIVE GAME AREA -->
+    <!-- 6. THE ACTIVE GAME AREA -->
     <div id="gameArea" class="hidden">
         <div id="gameControls">
             <button id="restartBtn" class="clay btn-primary">Restart Match</button>
@@ -91,8 +111,7 @@
         <h2 id="statusText">Loading...</h2>
         
         <div id="gameLayout">
-            
-            <!-- GAME ENGINE 1: Tic Tac Toe Board -->
+            <!-- Tic Tac Toe Board -->
             <div id="tictactoeBoard" class="board clay hidden">
                 <div id="strike" class="strike hidden"></div>
                 <div class="cell clay" data-index="0"></div>
@@ -106,19 +125,18 @@
                 <div class="cell clay" data-index="8"></div>
             </div>
 
-            <!-- GAME ENGINE 2: Ludo Board -->
+            <!-- Ludo Board -->
             <div id="ludoWrapper" class="hidden">
                 <div class="ludo-dashboard clay-card clay">
                     <div class="dice-block">
-                        <div id="ludoDice" class="clay dice-cube">🎲</div>
+                        <div id="ludoDice" class="dice-cube"></div>
                         <button id="rollDiceBtn" class="clay btn-primary">Roll Dice</button>
                     </div>
                 </div>
-                <div id="ludoBoard" class="ludo-board clay">
-                    <!-- JS will dynamically draw the 15x15 grid here -->
+                <div id="ludoBoard" class="ludo-board">
+                    <!-- JS will dynamically draw the grid here -->
                 </div>
             </div>
-
         </div>
     </div>
 
@@ -129,6 +147,15 @@
         <div class="chat-input-area">
             <input type="text" id="chatInput" placeholder="Type a message..." maxlength="100" class="clay">
             <button id="sendChatBtn" class="clay btn-primary">Send</button>
+        </div>
+    </div>
+
+    <!-- ROULETTE OVERLAY (NEW) -->
+    <div id="rouletteOverlay" class="hidden" style="position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.8); backdrop-filter: blur(10px); z-index: 1000; display: flex; justify-content: center; align-items: center;">
+        <div class="clay-card clay result-card">
+            <h2 style="color: var(--secondary-color);">Choosing Players...</h2>
+            <h1 id="rouletteName" style="font-size: 3rem; margin: 20px 0;">???</h1>
+            <h3 id="rouletteRole" style="opacity: 0.8;"></h3>
         </div>
     </div>
 
