@@ -11,11 +11,21 @@ const vsBotBtn = document.getElementById('vsBotBtn');
 const vsFriendBtn = document.getElementById('vsFriendBtn');
 
 const lobbyScreen = document.getElementById('lobbyScreen');
+const lobbyActions = document.getElementById('lobbyActions');
+const capacitySetup = document.getElementById('capacitySetup');
+const capacityCards = document.querySelectorAll('.capacity-card');
+const cancelCreateBtn = document.getElementById('cancelCreateBtn');
 const createBtn = document.getElementById('createBtn');
 const joinBtn = document.getElementById('joinBtn');
 const codeInput = document.getElementById('codeInput');
 const lobbyMessage = document.getElementById('lobbyMessage');
 const backToModeBtn = document.getElementById('backToModeBtn');
+
+const waitingScreen = document.getElementById('waitingScreen');
+const waitingRoomCode = document.getElementById('waitingRoomCode');
+const playerRoster = document.getElementById('playerRoster');
+const waitingStatus = document.getElementById('waitingStatus');
+const leaveWaitingBtn = document.getElementById('leaveWaitingBtn');
 
 const hubScreen = document.getElementById('hubScreen');
 const hubRoleBanner = document.getElementById('hubRoleBanner');
@@ -47,6 +57,10 @@ const chatMessages = document.getElementById('chatMessages');
 const chatInput = document.getElementById('chatInput');
 const sendChatBtn = document.getElementById('sendChatBtn');
 
+const rouletteOverlay = document.getElementById('rouletteOverlay');
+const rouletteName = document.getElementById('rouletteName');
+const rouletteRole = document.getElementById('rouletteRole');
+
 const resultOverlay = document.getElementById('resultOverlay');
 const resultTitle = document.getElementById('resultTitle');
 const overlayRestartBtn = document.getElementById('overlayRestartBtn');
@@ -67,6 +81,7 @@ function showScreen(screen) {
     nameScreen.classList.add('hidden'); 
     modeScreen.classList.add('hidden'); 
     lobbyScreen.classList.add('hidden');
+    waitingScreen.classList.add('hidden');
     hubScreen.classList.add('hidden'); 
     gameArea.classList.add('hidden'); 
     resultOverlay.classList.add('hidden');
@@ -125,17 +140,43 @@ vsBotBtn.addEventListener('click', () => {
 vsFriendBtn.addEventListener('click', () => { 
     currentMode = 'friend'; 
     difficultyContainer.classList.add('hidden'); 
+    lobbyActions.classList.remove('hidden');
+    capacitySetup.classList.add('hidden');
     showScreen(lobbyScreen); 
 });
 
+// --- SMART BACK BUTTON LOGIC ---
 backToModeBtn.addEventListener('click', () => { 
-    showScreen(modeScreen); 
-    lobbyMessage.innerText = ''; 
-    codeInput.value = ''; 
+    // If inside Capacity Selection, go back to Join/Create screen
+    if (!capacitySetup.classList.contains('hidden')) {
+        capacitySetup.classList.add('hidden');
+        lobbyActions.classList.remove('hidden');
+    } else {
+        // Otherwise, go all the way back to the Mode screen
+        showScreen(modeScreen); 
+        lobbyMessage.innerText = ''; 
+        codeInput.value = ''; 
+    }
 });
 
+// --- NEW ROOM CREATION FLOW ---
 createBtn.addEventListener('click', () => { 
-    socket.send(JSON.stringify({ action: "create", name: playerName })); 
+    lobbyActions.classList.add('hidden');
+    capacitySetup.classList.remove('hidden');
+});
+
+capacityCards.forEach(card => {
+    card.addEventListener('click', () => {
+        const capacity = parseInt(card.getAttribute('data-cap'));
+        socket.send(JSON.stringify({ action: "create", name: playerName, capacity: capacity })); 
+    });
+});
+
+capacityCards.forEach(card => {
+    card.addEventListener('click', () => {
+        const capacity = parseInt(card.getAttribute('data-cap'));
+        socket.send(JSON.stringify({ action: "create", name: playerName, capacity: capacity })); 
+    });
 });
 
 joinBtn.addEventListener('click', () => { 
@@ -147,12 +188,15 @@ joinBtn.addEventListener('click', () => {
     }
 });
 
-leaveHubBtn.addEventListener('click', () => { 
-    if (currentMode === 'friend') socket.send(JSON.stringify({ action: "leave" })); 
+function leaveRoom() {
+    socket.send(JSON.stringify({ action: "leave" })); 
     hideChat(); 
     chatMessages.innerHTML = ''; 
     showScreen(modeScreen); 
-});
+}
+
+leaveHubBtn.addEventListener('click', () => { if (currentMode === 'friend') leaveRoom(); else showScreen(modeScreen); });
+leaveWaitingBtn.addEventListener('click', leaveRoom);
 
 launchTicTacToe.addEventListener('click', () => { 
     if (myRole === 'Host' || currentMode === 'bot') { 
@@ -185,7 +229,16 @@ function startGameUI(gameType) {
     if (activeGame === 'tictactoe') { 
         tictactoeBoard.classList.remove('hidden'); 
         resetBoard(); 
-        statusText.innerText = myRole === 'Host' ? "Game Started! Your Turn." : `Game Started! Waiting for ${opponentName}...`; 
+        
+        if (currentMode === 'bot') {
+            statusText.innerText = "Game Started! Your Turn."; 
+        } else {
+            if (myRole === 'Spectator') {
+                statusText.innerText = "Spectating Match...";
+            } else {
+                statusText.innerText = currentSymbol === 'X' ? "Your Turn!" : "Opponent's Turn...";
+            }
+        }
     } else if (activeGame === 'ludo') { 
         ludoWrapper.classList.remove('hidden'); 
         initLudoGame(); 
@@ -198,36 +251,33 @@ function startGameUI(gameType) {
 let currentLudoTurn = 'Host'; 
 let diceRolledValue = 0;
 let hasRolled = false;
+let myLudoColor = 'red'; // Default to red for bot mode
 
-// Token tracking: -1 means in base, 0-50 means on track, 51-56 means home stretch. 57 = Finish
 let ludoState = {
-    Host: [-1, -1, -1, -1], // Red (Host)
-    Guest: [-1, -1, -1, -1] // Blue (Guest / Bot)
+    red: [-1, -1, -1, -1],
+    green: [-1, -1, -1, -1],
+    blue: [-1, -1, -1, -1],
+    yellow: [-1, -1, -1, -1]
 };
 
-// Accurately Mapped 52-Step Main Track (Clockwise from Red Start 6-1)
+const ludoTurnOrder = ['red', 'green', 'yellow', 'blue'];
+
 const trackPath = [
-    '6-1','6-2','6-3','6-4','6-5', 
-    '5-6','4-6','3-6','2-6','1-6','0-6', 
-    '0-7','0-8', 
-    '1-8','2-8','3-8','4-8','5-8', 
-    '6-9','6-10','6-11','6-12','6-13','6-14', 
-    '7-14','8-14', 
-    '8-13','8-12','8-11','8-10','8-9', 
-    '9-8','10-8','11-8','12-8','13-8','14-8', 
-    '14-7','14-6', 
-    '13-6','12-6','11-6','10-6','9-6', 
-    '8-5','8-4','8-3','8-2','8-1','8-0', 
-    '7-0','6-0'
+    '6-1','6-2','6-3','6-4','6-5', '5-6','4-6','3-6','2-6','1-6','0-6', '0-7','0-8', 
+    '1-8','2-8','3-8','4-8','5-8', '6-9','6-10','6-11','6-12','6-13','6-14', '7-14','8-14', 
+    '8-13','8-12','8-11','8-10','8-9', '9-8','10-8','11-8','12-8','13-8','14-8', '14-7','14-6', 
+    '13-6','12-6','11-6','10-6','9-6', '8-5','8-4','8-3','8-2','8-1','8-0', '7-0','6-0'
 ];
 
-const redHome = ['7-1','7-2','7-3','7-4','7-5','center'];
-const blueHome = ['13-7','12-7','11-7','10-7','9-7','center'];
+const homePaths = {
+    red: ['7-1','7-2','7-3','7-4','7-5','center'],
+    green: ['1-7','2-7','3-7','4-7','5-7','center'],
+    yellow: ['7-13','7-12','7-11','7-10','7-9','center'],
+    blue: ['13-7','12-7','11-7','10-7','9-7','center']
+};
 
-// Official Ludo Safe Zones
 const safeZones = ['6-1', '8-2', '1-8', '2-6', '8-13', '6-12', '13-6', '12-8'];
 
-// The completely rebuilt 3D Dot Dice rendering function
 function getDiceHTML(value) {
     if (!value) return '';
     const dots = {
@@ -242,28 +292,35 @@ function getDiceHTML(value) {
 }
 
 function initLudoGame() {
-    ludoState = { Host: [-1, -1, -1, -1], Guest: [-1, -1, -1, -1] };
+    ludoState = { red: [-1,-1,-1,-1], green: [-1,-1,-1,-1], blue: [-1,-1,-1,-1], yellow: [-1,-1,-1,-1] };
     drawLudoBoard();
-    currentLudoTurn = 'Host';
+    currentLudoTurn = 'red'; // Red always starts
     hasRolled = false;
-    ludoDice.innerHTML = getDiceHTML(6); // Show a default 6 dots on load
-    rollDiceBtn.disabled = myRole !== currentLudoTurn;
-    statusText.innerText = myRole === 'Host' ? "Ludo! Your Turn to Roll." : `Ludo! Waiting for ${opponentName} to roll.`;
+    ludoDice.innerHTML = getDiceHTML(6); 
+    
+    // In bot mode, Host is red. In MP, color is assigned by server.
+    if (currentMode === 'bot') {
+        myLudoColor = 'red';
+        myRole = 'Host';
+    }
+    
+    rollDiceBtn.disabled = myLudoColor !== currentLudoTurn;
+    statusText.innerText = myLudoColor === currentLudoTurn ? "Ludo! Your Turn to Roll." : `Waiting for ${currentLudoTurn}'s turn...`;
     gameActive = true;
 }
 
 rollDiceBtn.addEventListener('click', () => {
-    if (activeGame !== 'ludo' || myRole !== currentLudoTurn || hasRolled || !gameActive) return;
+    if (activeGame !== 'ludo' || myLudoColor !== currentLudoTurn || hasRolled || !gameActive) return;
     const val = Math.floor(Math.random() * 6) + 1;
     
     if (currentMode === 'friend') {
-        socket.send(JSON.stringify({ action: "roll_dice", roller: myRole, value: val }));
+        socket.send(JSON.stringify({ action: "roll_dice", roller: myLudoColor, value: val }));
     } else {
-        animateDice(val, myRole);
+        animateDice(val, myLudoColor);
     }
 });
 
-function animateDice(finalValue, rollerRole) {
+function animateDice(finalValue, rollerColor) {
     rollDiceBtn.disabled = true; 
     hasRolled = true; 
     diceRolledValue = finalValue;
@@ -272,23 +329,21 @@ function animateDice(finalValue, rollerRole) {
     ludoDice.classList.add('rolling'); 
     
     const interval = setInterval(() => {
-        // Only use the new beautiful 3D dots
         ludoDice.innerHTML = getDiceHTML(Math.floor(Math.random() * 6) + 1);
         counter++;
-        
         if (counter > 10) {
             clearInterval(interval);
             ludoDice.classList.remove('rolling');
             ludoDice.innerHTML = getDiceHTML(finalValue);
-            statusText.innerText = `${rollerRole === myRole ? "You" : opponentName} rolled a ${finalValue}!`;
+            statusText.innerText = `${rollerColor === myLudoColor ? "You" : rollerColor} rolled a ${finalValue}!`;
             
-            setTimeout(() => { processTurnMoves(rollerRole); }, 800);
+            setTimeout(() => { processTurnMoves(rollerColor); }, 800);
         }
     }, 50);
 }
 
-function processTurnMoves(role) {
-    const tokens = ludoState[role];
+function processTurnMoves(colorStr) {
+    const tokens = ludoState[colorStr];
     let movableTokens = [];
     
     tokens.forEach((pos, index) => {
@@ -298,35 +353,33 @@ function processTurnMoves(role) {
 
     if (movableTokens.length === 0) {
         statusText.innerText = "No valid moves! Turn skipped.";
-        setTimeout(() => { switchLudoTurn(role); }, 1500);
+        setTimeout(() => { switchLudoTurn(colorStr); }, 1500);
         return;
     }
 
-    // Auto-move feature if you only have one logical choice
     const allSamePosition = movableTokens.every(idx => tokens[idx] === tokens[movableTokens[0]]);
-    if (allSamePosition && role === myRole) {
+    if (allSamePosition && colorStr === myLudoColor) {
         statusText.innerText = "Auto-moving pawn...";
-        setTimeout(() => { executeMove(role, movableTokens[0]); }, 600);
+        setTimeout(() => { executeMove(colorStr, movableTokens[0]); }, 600);
         return;
     }
 
-    if (role === myRole) {
+    if (colorStr === myLudoColor) {
         statusText.innerText = "Action required: Click a glowing pawn!";
         movableTokens.forEach(idx => {
-            const color = role === 'Host' ? 'red' : 'blue';
-            const pawn = document.getElementById(`${color}-pawn-${idx}`);
+            const pawn = document.getElementById(`${colorStr}-pawn-${idx}`);
             pawn.classList.add('movable-glow');
             
             pawn.onclick = () => {
                 for(let i=0; i<4; i++) { 
-                    const p = document.getElementById(`${color}-pawn-${i}`);
+                    const p = document.getElementById(`${colorStr}-pawn-${i}`);
                     p.classList.remove('movable-glow'); 
                     p.onclick = null; 
                 }
-                executeMove(role, idx);
+                executeMove(colorStr, idx);
             };
         });
-    } else if (currentMode === 'bot') {
+    } else if (currentMode === 'bot' && colorStr === 'blue') {
         setTimeout(() => {
             let chosenToken = movableTokens[0];
             if (movableTokens.some(idx => tokens[idx] === -1)) {
@@ -334,44 +387,47 @@ function processTurnMoves(role) {
             } else {
                 chosenToken = movableTokens.reduce((maxIdx, currentIdx) => tokens[currentIdx] > tokens[maxIdx] ? currentIdx : maxIdx, movableTokens[0]);
             }
-            executeMove('Guest', chosenToken);
+            executeMove('blue', chosenToken);
         }, 1000);
     }
 }
 
-function executeMove(role, tokenIndex) {
-    if (currentMode === 'friend' && role === myRole) {
-        socket.send(JSON.stringify({ action: "ludo_move", roller: role, token: tokenIndex, roll: diceRolledValue }));
+function executeMove(colorStr, tokenIndex) {
+    if (currentMode === 'friend' && colorStr === myLudoColor) {
+        socket.send(JSON.stringify({ action: "ludo_move", roller: colorStr, token: tokenIndex, roll: diceRolledValue }));
     }
     
-    let oldPos = ludoState[role][tokenIndex];
+    let oldPos = ludoState[colorStr][tokenIndex];
     let newPos = oldPos === -1 ? 0 : oldPos + diceRolledValue;
-    ludoState[role][tokenIndex] = newPos;
+    ludoState[colorStr][tokenIndex] = newPos;
     
-    movePawnDOM(role, tokenIndex, newPos);
+    movePawnDOM(colorStr, tokenIndex, newPos);
     
     let captured = false;
     if (newPos > -1 && newPos < 51) {
-        const myAbsolutePos = getAbsoluteId(role, newPos);
-        const oppRole = role === 'Host' ? 'Guest' : 'Host';
+        const myAbsolutePos = getAbsoluteId(colorStr, newPos);
         
         if (!safeZones.includes(myAbsolutePos)) {
-            ludoState[oppRole].forEach((oppPos, oppIdx) => {
-                if (oppPos > -1 && oppPos < 51 && getAbsoluteId(oppRole, oppPos) === myAbsolutePos) {
-                    ludoState[oppRole][oppIdx] = -1;
-                    movePawnDOM(oppRole, oppIdx, -1);
-                    captured = true;
-                    statusText.innerText = "SMASH! Sent home!";
+            ['red', 'blue', 'green', 'yellow'].forEach(oppColor => {
+                if (oppColor !== colorStr) {
+                    ludoState[oppColor].forEach((oppPos, oppIdx) => {
+                        if (oppPos > -1 && oppPos < 51 && getAbsoluteId(oppColor, oppPos) === myAbsolutePos) {
+                            ludoState[oppColor][oppIdx] = -1;
+                            movePawnDOM(oppColor, oppIdx, -1);
+                            captured = true;
+                            statusText.innerText = "SMASH! Sent home!";
+                        }
+                    });
                 }
             });
         }
     }
 
-    if (ludoState[role].every(p => p === 57)) {
+    if (ludoState[colorStr].every(p => p === 57)) {
         gameActive = false;
         setTimeout(() => {
-            resultTitle.innerText = role === myRole ? "LUDO CHAMPION! 🎉" : "YOU LOSE! 😢";
-            resultTitle.style.color = role === 'Host' ? 'var(--accent-x)' : 'var(--accent-o)';
+            resultTitle.innerText = colorStr === myLudoColor ? "LUDO CHAMPION! 🎉" : `${colorStr} WINS! 😢`;
+            resultTitle.style.color = `var(--accent-${colorStr})`;
             resultOverlay.classList.remove('hidden');
         }, 1000);
         return;
@@ -381,53 +437,65 @@ function executeMove(role, tokenIndex) {
         if (diceRolledValue === 6 || captured || newPos === 57) {
             statusText.innerText = "Bonus Roll!";
             hasRolled = false;
-            if (role === myRole) rollDiceBtn.disabled = false;
-            if (role === 'Guest' && currentMode === 'bot') {
-                setTimeout(() => { animateDice(Math.floor(Math.random() * 6) + 1, 'Guest'); }, 1500);
+            if (colorStr === myLudoColor) rollDiceBtn.disabled = false;
+            if (currentMode === 'bot' && colorStr === 'blue') {
+                setTimeout(() => { animateDice(Math.floor(Math.random() * 6) + 1, 'blue'); }, 1500);
             }
         } else {
-            switchLudoTurn(role);
+            switchLudoTurn(colorStr);
         }
     }, 1500);
 }
 
 function switchLudoTurn(current) {
-    currentLudoTurn = current === 'Host' ? 'Guest' : 'Host';
+    // In bot mode, we only toggle red/blue for simplicity
+    if (currentMode === 'bot') {
+        currentLudoTurn = current === 'red' ? 'blue' : 'red';
+    } else {
+        // In multiplayer, it cycles to the next active player. For now we assume all 4 could be playing.
+        const currentIndex = ludoTurnOrder.indexOf(current);
+        currentLudoTurn = ludoTurnOrder[(currentIndex + 1) % 4];
+    }
+    
     hasRolled = false;
     
-    if (currentLudoTurn === myRole) {
+    if (currentLudoTurn === myLudoColor) {
         rollDiceBtn.disabled = false;
         statusText.innerText = "Your Turn: Roll the Dice!";
     } else {
         rollDiceBtn.disabled = true;
-        statusText.innerText = `Waiting for ${opponentName}...`;
-        if (currentMode === 'bot') {
-            setTimeout(() => { animateDice(Math.floor(Math.random() * 6) + 1, 'Guest'); }, 1500);
+        statusText.innerText = `Waiting for ${currentLudoTurn}...`;
+        if (currentMode === 'bot' && currentLudoTurn === 'blue') {
+            setTimeout(() => { animateDice(Math.floor(Math.random() * 6) + 1, 'blue'); }, 1500);
         }
     }
 }
 
-function getAbsoluteId(role, pos) {
+function getAbsoluteId(colorStr, pos) {
     if (pos === -1) return null; 
-    if (role === 'Host') {
-        return pos < 51 ? trackPath[pos] : redHome[pos - 51];
-    } else { 
-        // Guest (Blue) starts perfectly offset by 39 tiles on the main track.
-        if (pos < 51) return trackPath[(pos + 39) % 52];
-        return blueHome[pos - 51];
+    
+    if (pos >= 51) {
+        return homePaths[colorStr][pos - 51];
     }
+    
+    // Shifts based on official Ludo layout
+    let offset = 0;
+    if (colorStr === 'green') offset = 13;
+    if (colorStr === 'yellow') offset = 26;
+    if (colorStr === 'blue') offset = 39;
+    
+    return trackPath[(pos + offset) % 52];
 }
 
-function movePawnDOM(role, tokenIndex, pos) {
-    const color = role === 'Host' ? 'red' : 'blue';
-    const pawn = document.getElementById(`${color}-pawn-${tokenIndex}`);
+function movePawnDOM(colorStr, tokenIndex, pos) {
+    const pawn = document.getElementById(`${colorStr}-pawn-${tokenIndex}`);
     
     if (pos === -1) {
-        const baseInner = document.querySelector(`.bg-${color} .ludo-base-inner`);
+        const baseInner = document.querySelector(`.bg-${colorStr} .ludo-base-inner`);
         const slot = baseInner.children[tokenIndex];
         slot.appendChild(pawn);
     } else {
-        const cellId = getAbsoluteId(role, pos);
+        const cellId = getAbsoluteId(colorStr, pos);
         let targetCell = cellId === 'center' ? document.querySelector('.center-home') : document.getElementById(`cell-${cellId}`);
         targetCell.appendChild(pawn);
     }
@@ -440,13 +508,11 @@ function movePawnDOM(role, tokenIndex, pos) {
 
 function drawLudoBoard() {
     ludoBoard.innerHTML = ''; 
-    
-    // PERFECTED BASE ALIGNMENT
     const bases = [
-        { id: 'red', class: 'bg-red', colStart: 1, colEnd: 7, rowStart: 1, rowEnd: 7 }, // Red is Top-Left
-        { id: 'green', class: 'bg-green', colStart: 10, colEnd: 16, rowStart: 1, rowEnd: 7 }, // Green is Top-Right
-        { id: 'blue', class: 'bg-blue', colStart: 1, colEnd: 7, rowStart: 10, rowEnd: 16 }, // Blue is Bottom-Left
-        { id: 'yellow', class: 'bg-yellow', colStart: 10, colEnd: 16, rowStart: 10, rowEnd: 16 } // Yellow is Bottom-Right
+        { id: 'red', class: 'bg-red', colStart: 1, colEnd: 7, rowStart: 1, rowEnd: 7 }, 
+        { id: 'green', class: 'bg-green', colStart: 10, colEnd: 16, rowStart: 1, rowEnd: 7 }, 
+        { id: 'blue', class: 'bg-blue', colStart: 1, colEnd: 7, rowStart: 10, rowEnd: 16 }, 
+        { id: 'yellow', class: 'bg-yellow', colStart: 10, colEnd: 16, rowStart: 10, rowEnd: 16 } 
     ];
 
     bases.forEach(b => {
@@ -492,13 +558,11 @@ function drawLudoBoard() {
                 cell.style.gridRow = `${row + 1}`; 
                 cell.id = `cell-${row}-${col}`;
 
-                // PERFECTED START TILES & TRACK COLORS
                 if (row === 6 && col === 1) cell.classList.add('bg-red', 'start-cell');
                 if (row === 1 && col === 8) cell.classList.add('bg-green', 'start-cell');
                 if (row === 8 && col === 13) cell.classList.add('bg-yellow', 'start-cell');
                 if (row === 13 && col === 6) cell.classList.add('bg-blue', 'start-cell');
 
-                // PERFECTED HOME STRETCHES
                 if (row === 7 && col >= 1 && col <= 5) cell.classList.add('bg-red');
                 if (col === 7 && row >= 1 && row <= 5) cell.classList.add('bg-green');
                 if (row === 7 && col >= 9 && col <= 13) cell.classList.add('bg-yellow');
@@ -517,7 +581,7 @@ function drawLudoBoard() {
 // TIC-TAC-TOE & COMMON LOGIC
 // ==========================================
 function resetBoard() { 
-    cells.forEach(c => { c.innerText = ""; c.style.color = ""; }); 
+    cells.forEach(c => { c.innerText = ""; c.style.color = ""; c.style.pointerEvents = myRole === 'Spectator' ? 'none' : 'auto'; }); 
     currentSymbol = 'X'; 
     gameActive = true; 
     strike.className = 'strike hidden'; 
@@ -583,8 +647,10 @@ function handleBotMove() {
 
 cells.forEach(cell => {
     cell.addEventListener('click', () => {
-        if(activeGame !== 'tictactoe') return; 
-        let sym = myRole === 'Host' ? 'X' : 'O';
+        if(activeGame !== 'tictactoe' || myRole === 'Spectator') return; 
+        
+        let sym = myRole === 'Player 1' || currentMode === 'bot' ? 'X' : 'O';
+        
         if (cell.innerText === "" && gameActive && currentSymbol === sym) {
             if (currentMode === 'friend') {
                 socket.send(JSON.stringify({ action: "move", index: cell.getAttribute('data-index'), symbol: sym }));
@@ -602,11 +668,20 @@ function checkWin() {
         if (cells[a].innerText !== "" && cells[a].innerText === cells[b].innerText && cells[a].innerText === cells[c].innerText) { won = true; winCls = winningConditions[i].class; break; }
     }
     if (won) {
-        gameActive = false; const wSym = currentSymbol === 'X' ? 'O' : 'X'; 
-        const me = (myRole === 'Host' && wSym === 'X') || (myRole === 'Guest' && wSym === 'O');
+        gameActive = false; 
+        const wSym = currentSymbol === 'X' ? 'O' : 'X'; 
+        
+        let me = false;
+        if (currentMode === 'bot') me = wSym === 'X';
+        else me = (myRole === 'Player 1' && wSym === 'X') || (myRole === 'Player 2' && wSym === 'O');
+
         setTimeout(() => { 
-            resultTitle.innerText = me ? "YOU WIN! 🎉" : "YOU LOSE! 😢"; 
-            resultTitle.style.color = me ? 'var(--accent-x)' : 'var(--accent-o)'; 
+            if (myRole === 'Spectator') {
+                resultTitle.innerText = `${wSym} WINS!`;
+            } else {
+                resultTitle.innerText = me ? "YOU WIN! 🎉" : "YOU LOSE! 😢"; 
+            }
+            resultTitle.style.color = wSym === 'X' ? 'var(--accent-x)' : 'var(--accent-o)'; 
             resultOverlay.classList.remove('hidden'); 
         }, 500); 
         strike.style.backgroundColor = wSym === 'X' ? 'var(--accent-x)' : 'var(--accent-o)'; 
@@ -628,35 +703,88 @@ function sendChatMessage() {
 sendChatBtn.addEventListener('click', sendChatMessage); 
 chatInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') sendChatMessage(); });
 
-// --- SOCKET MESSAGES ---
+// --- SOCKET MESSAGES & ROULETTE LOGIC ---
+function runRoulette(players, assignedRole, symbol, finalRoleData) {
+    rouletteOverlay.classList.remove('hidden');
+    let counter = 0;
+    
+    // Rapidly flash random names
+    const interval = setInterval(() => {
+        const randPlayer = players[Math.floor(Math.random() * players.length)];
+        rouletteName.innerText = randPlayer;
+        rouletteRole.innerText = "Shuffling...";
+        counter++;
+        
+        if (counter > 20) {
+            clearInterval(interval);
+            rouletteName.innerText = "Role Assigned!";
+            rouletteRole.innerText = `You are: ${assignedRole} ${symbol ? '('+symbol+')' : ''}`;
+            
+            setTimeout(() => {
+                rouletteOverlay.classList.add('hidden');
+                startGameUI(finalRoleData.game);
+                
+                if (finalRoleData.game === 'tictactoe') {
+                    if (assignedRole === 'Spectator') {
+                        statusText.innerText = `Spectating: ${finalRoleData.p1} (X) vs ${finalRoleData.p2} (O)`;
+                    } else {
+                        statusText.innerText = symbol === 'X' ? "Your Turn!" : "Waiting for Opponent...";
+                    }
+                }
+            }, 2500);
+        }
+    }, 100);
+}
+
 socket.onmessage = (event) => {
     const data = JSON.parse(event.data);
     
     if (data.type === "room_created") { 
-        myRoomCode = data.room; myRole = 'Host'; 
-        hubRoleBanner.classList.remove('hidden'); hubRoomDisplay.classList.remove('hidden'); 
-        hubRoleBanner.innerText = "Host: Pick a game!"; hubRoomDisplay.innerText = `Room Code: ${myRoomCode}`; 
-        launchTicTacToe.classList.remove('locked-game'); launchLudo.classList.remove('locked-game'); 
-        showChat(); showScreen(hubScreen); 
+        myRoomCode = data.room; 
+        myRole = 'Host'; 
+        // Do not show hub yet, wait for lobby update
+    }
+    else if (data.type === "lobby_update") {
+        myRoomCode = data.room;
+        waitingRoomCode.innerText = myRoomCode;
+        waitingStatus.innerText = `Waiting for players... (${data.players.length}/${data.capacity})`;
+        
+        playerRoster.innerHTML = '';
+        data.players.forEach(p => {
+            playerRoster.innerHTML += `<div style="font-weight: 800; font-size: 1.1rem; padding: 5px 0;">👤 ${p} ${p === data.host ? '(Host)' : ''}</div>`;
+        });
+        
+        showScreen(waitingScreen);
+        showChat();
     }
     else if (data.type === "hub_start") { 
-        myRoomCode = data.room; myRole = data.role; opponentName = data.opponent; 
-        hubRoleBanner.classList.remove('hidden'); hubRoomDisplay.classList.remove('hidden'); 
-        if (myRole === 'Host') { 
-            hubRoleBanner.innerText = `Host: Pick a game for you and ${opponentName}`; 
-            launchTicTacToe.classList.remove('locked-game'); launchLudo.classList.remove('locked-game'); 
+        myRoomCode = data.room; 
+        opponentName = data.host; 
+        
+        if (playerName === data.host) { 
+            hubRoleBanner.innerText = `Host: Pick a game for the lobby!`; 
+            launchTicTacToe.classList.remove('locked-game'); 
+            launchLudo.classList.remove('locked-game'); 
         } else { 
-            hubRoleBanner.innerText = `Waiting for Host (${opponentName}) to pick a game...`; 
-            launchTicTacToe.classList.add('locked-game'); launchLudo.classList.add('locked-game'); 
+            hubRoleBanner.innerText = `Waiting for Host (${data.host}) to pick a game...`; 
+            launchTicTacToe.classList.add('locked-game'); 
+            launchLudo.classList.add('locked-game'); 
         } 
         hubRoomDisplay.innerText = `Room Code: ${myRoomCode}`; 
-        showChat(); showScreen(hubScreen); 
+        showScreen(hubScreen); 
     }
-    else if (data.type === "launch_game") { startGameUI(data.game); }
+    else if (data.type === "launch_game") { 
+        if (data.game === 'tictactoe') {
+            myRole = data.role;
+            runRoulette(data.all_players, data.role, data.symbol, data);
+        } else if (data.game === 'ludo') {
+            myLudoColor = data.color;
+            runRoulette(data.all_players.map(p=>p.name), "Player", data.color.toUpperCase(), data);
+        }
+    }
     else if (data.type === "return_hub") { showScreen(hubScreen); }
     else if (data.type === "dice_rolled") { animateDice(data.value, data.roller); }
     else if (data.type === "ludo_move") { 
-        // FIX THE DESYNC BUG: Must update dice value before executing the move
         diceRolledValue = data.roll; 
         executeMove(data.roller, data.token); 
     }
@@ -667,15 +795,24 @@ socket.onmessage = (event) => {
         chatMessages.appendChild(msg); chatMessages.scrollTop = chatMessages.scrollHeight; 
     }
     else if (data.type === "restart") { 
-        if(activeGame === 'tictactoe') { resetBoard(); statusText.innerText = myRole === 'Host' ? "Rematch! Your Turn." : `Rematch! Waiting for ${opponentName}...`; } else if(activeGame === 'ludo') { initLudoGame(); }
+        if(activeGame === 'tictactoe') { 
+            resetBoard(); 
+            if (myRole === 'Spectator') statusText.innerText = "Spectating Match...";
+            else statusText.innerText = myRole === 'Player 1' ? "Rematch! Your Turn." : "Waiting for Opponent...";
+        } else if(activeGame === 'ludo') { initLudoGame(); }
     }
     else if (data.type === "error") { lobbyMessage.innerText = data.message; }
     else if (data.type === "player_left") { 
-        statusText.innerText = `${opponentName} left.`; gameActive = false; 
-        hideChat(); chatMessages.innerHTML = ''; showScreen(modeScreen); alert(`${opponentName} disconnected.`); 
+        statusText.innerText = `${data.name} left the room.`; 
+        gameActive = false; 
+        hideChat(); chatMessages.innerHTML = ''; showScreen(modeScreen); alert(`${data.name} disconnected.`); 
     }
     else if (data.type === "move" && activeGame === 'tictactoe') { 
         cells[data.index].innerText = data.symbol; applyColor(cells[data.index], data.symbol); currentSymbol = data.symbol === 'X' ? 'O' : 'X'; 
-        if (gameActive) { statusText.innerText = currentSymbol === (myRole === 'Host' ? 'X' : 'O') ? "Your Turn!" : `Waiting for ${opponentName}...`; checkWin(); } 
+        if (gameActive) { 
+            if (myRole === 'Spectator') statusText.innerText = `Current Turn: ${currentSymbol}`;
+            else statusText.innerText = currentSymbol === (myRole === 'Player 1' ? 'X' : 'O') ? "Your Turn!" : "Opponent's Turn..."; 
+            checkWin(); 
+        } 
     }
 };

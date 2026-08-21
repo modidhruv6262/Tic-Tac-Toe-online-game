@@ -264,6 +264,22 @@ button:active {
 .game-icon { font-size: 3rem; }
 .game-card h3 { font-size: 1.1rem; margin: 0; font-weight: 900; }
 
+/* --- CAPACITY ROW (Forces a single horizontal line) --- */
+.capacity-row {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 10px;
+    width: 100%;
+    margin-top: 15px;
+    flex-wrap: nowrap; /* Forces them to stay in one row */
+}
+
+.capacity-card {
+    flex: 1; /* Makes all 3 cards exactly equal width */
+    padding: 15px 5px; /* Tighter padding so they fit nicely */
+}
+
 .locked-game { opacity: 0.5; cursor: not-allowed; filter: grayscale(0.5); }
 .badge {
     position: absolute;

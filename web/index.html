@@ -32,18 +32,104 @@
     <div id="lobbyScreen" class="clay-card clay hidden">
         <h2>Multiplayer Lobby</h2>
         
-        <div id="capacitySetup" style="width: 100%;">
-            <p class="subtitle">Create Room Size:</p>
-            <div class="mode-grid">
-                <button class="clay btn-secondary capacity-btn" data-cap="2">2 Players</button>
-                <button class="clay btn-secondary capacity-btn" data-cap="3">3 Players</button>
-                <button class="clay btn-secondary capacity-btn" data-cap="4">4 Players</button>
-            </div>
+        <!-- Default Lobby Actions -->
+        <div id="lobbyActions" style="width: 100%;">
+            <button id="createBtn" class="clay btn-primary">Create New Room</button>
             <p class="subtitle mt-10">OR</p>
+            <input type="text" id="codeInput" placeholder="Enter 4-digit code" maxlength="4" class="clay">
+            <button id="joinBtn" class="clay btn-secondary">Join Existing Room</button>
+        </div>
+
+        <!-- Hidden Capacity Selection (Strictly Horizontal with 3D Rendered SVGs) -->
+        <div id="capacitySetup" class="hidden" style="width: 100%;">
+            <h3 style="color: var(--primary-color);">Select Room Size</h3>
+            
+            <div class="capacity-row">
+                
+                <!-- 2 PLAYER CARD -->
+                <div class="game-card clay capacity-card" data-cap="2">
+                    <svg viewBox="0 0 60 45" width="100%" height="45px" style="margin-bottom: 5px;">
+                        <defs>
+                            <!-- 3D Gradients -->
+                            <radialGradient id="rRed" cx="35%" cy="25%" r="65%">
+                                <stop offset="0%" stop-color="#ff8da1"/>
+                                <stop offset="100%" stop-color="#c23616"/>
+                            </radialGradient>
+                            <radialGradient id="rBlue" cx="35%" cy="25%" r="65%">
+                                <stop offset="0%" stop-color="#82ccff"/>
+                                <stop offset="100%" stop-color="#0984e3"/>
+                            </radialGradient>
+                            <radialGradient id="rGreen" cx="35%" cy="25%" r="65%">
+                                <stop offset="0%" stop-color="#73f2ce"/>
+                                <stop offset="100%" stop-color="#00b894"/>
+                            </radialGradient>
+                            <radialGradient id="rYellow" cx="35%" cy="25%" r="65%">
+                                <stop offset="0%" stop-color="#ffebaa"/>
+                                <stop offset="100%" stop-color="#e67e22"/>
+                            </radialGradient>
+                            <!-- Soft 3D Shadow -->
+                            <filter id="shadow3d" x="-20%" y="-20%" width="140%" height="140%">
+                                <feDropShadow dx="1" dy="3" stdDeviation="2" flood-color="#000" flood-opacity="0.3"/>
+                            </filter>
+                        </defs>
+                        
+                        <g filter="url(#shadow3d)" transform="translate(6, 4)">
+                            <circle cx="12" cy="10" r="9" fill="url(#rRed)" />
+                            <path d="M1.5,36 C1.5,23 6,17 12,17 C18,17 22.5,23 22.5,36 Z" fill="url(#rRed)" />
+                        </g>
+                        <g filter="url(#shadow3d)" transform="translate(30, 4)">
+                            <circle cx="12" cy="10" r="9" fill="url(#rBlue)" />
+                            <path d="M1.5,36 C1.5,23 6,17 12,17 C18,17 22.5,23 22.5,36 Z" fill="url(#rBlue)" />
+                        </g>
+                    </svg>
+                    <h3>2P</h3>
+                </div>
+                
+                <!-- 3 PLAYER CARD -->
+                <div class="game-card clay capacity-card" data-cap="3">
+                    <svg viewBox="0 0 90 45" width="100%" height="45px" style="margin-bottom: 5px;">
+                        <g filter="url(#shadow3d)" transform="translate(6, 4)">
+                            <circle cx="12" cy="10" r="9" fill="url(#rRed)" />
+                            <path d="M1.5,36 C1.5,23 6,17 12,17 C18,17 22.5,23 22.5,36 Z" fill="url(#rRed)" />
+                        </g>
+                        <g filter="url(#shadow3d)" transform="translate(33, 4)">
+                            <circle cx="12" cy="10" r="9" fill="url(#rGreen)" />
+                            <path d="M1.5,36 C1.5,23 6,17 12,17 C18,17 22.5,23 22.5,36 Z" fill="url(#rGreen)" />
+                        </g>
+                        <g filter="url(#shadow3d)" transform="translate(60, 4)">
+                            <circle cx="12" cy="10" r="9" fill="url(#rBlue)" />
+                            <path d="M1.5,36 C1.5,23 6,17 12,17 C18,17 22.5,23 22.5,36 Z" fill="url(#rBlue)" />
+                        </g>
+                    </svg>
+                    <h3>3P</h3>
+                </div>
+                
+                <!-- 4 PLAYER CARD (Un-congested 2x2 Layout) -->
+                <div class="game-card clay capacity-card" data-cap="4">
+                    <svg viewBox="0 0 65 65" width="100%" height="45px" style="margin-bottom: 5px;">
+                        <g filter="url(#shadow3d)" transform="translate(4, 2) scale(0.85)">
+                            <circle cx="12" cy="10" r="9" fill="url(#rRed)" />
+                            <path d="M1.5,36 C1.5,23 6,17 12,17 C18,17 22.5,23 22.5,36 Z" fill="url(#rRed)" />
+                        </g>
+                        <g filter="url(#shadow3d)" transform="translate(34, 2) scale(0.85)">
+                            <circle cx="12" cy="10" r="9" fill="url(#rGreen)" />
+                            <path d="M1.5,36 C1.5,23 6,17 12,17 C18,17 22.5,23 22.5,36 Z" fill="url(#rGreen)" />
+                        </g>
+                        <g filter="url(#shadow3d)" transform="translate(4, 32) scale(0.85)">
+                            <circle cx="12" cy="10" r="9" fill="url(#rBlue)" />
+                            <path d="M1.5,36 C1.5,23 6,17 12,17 C18,17 22.5,23 22.5,36 Z" fill="url(#rBlue)" />
+                        </g>
+                        <g filter="url(#shadow3d)" transform="translate(34, 32) scale(0.85)">
+                            <circle cx="12" cy="10" r="9" fill="url(#rYellow)" />
+                            <path d="M1.5,36 C1.5,23 6,17 12,17 C18,17 22.5,23 22.5,36 Z" fill="url(#rYellow)" />
+                        </g>
+                    </svg>
+                    <h3>4P</h3>
+                </div>
+                
+            </div>
         </div>
         
-        <input type="text" id="codeInput" placeholder="Enter 4-digit code" maxlength="4" class="clay">
-        <button id="joinBtn" class="clay btn-primary">Join Existing Room</button>
         <h3 id="lobbyMessage"></h3>
         <button id="backToModeBtn" class="clay btn-danger small-btn mt-10">← Back</button>
     </div>
@@ -67,7 +153,6 @@
         <h2 id="hubRoleBanner" class="role-banner">Host: Pick a game!</h2>
         <h3 id="hubRoomDisplay"></h3>
 
-        <!-- BOT DIFFICULTY SLIDER -->
         <div id="difficultyContainer" class="difficulty-box clay-inset hidden">
             <label for="difficultySlider" class="diff-label">Bot Difficulty: <span id="diffLabelText">Medium</span></label>
             <input type="range" id="difficultySlider" min="1" max="3" value="2" step="1" class="clay-slider">
@@ -150,7 +235,7 @@
         </div>
     </div>
 
-    <!-- ROULETTE OVERLAY (NEW) -->
+    <!-- ROULETTE OVERLAY -->
     <div id="rouletteOverlay" class="hidden" style="position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.8); backdrop-filter: blur(10px); z-index: 1000; display: flex; justify-content: center; align-items: center;">
         <div class="clay-card clay result-card">
             <h2 style="color: var(--secondary-color);">Choosing Players...</h2>
