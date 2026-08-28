@@ -81,12 +81,52 @@ let playerName = '';
 let opponentName = ''; 
 let botDifficulty = 2; 
 
+
+// --- TRUTH OR DARE UI ---
+const launchToD = document.getElementById('launchToD');
+const todSettingsModal = document.getElementById('todSettingsModal');
+const cancelTodBtn = document.getElementById('cancelTodBtn');
+const startTodBtn = document.getElementById('startTodBtn');
+const todScreen = document.getElementById('todScreen');
+const leaveTodBtn = document.getElementById('leaveTodBtn');
+
+const todIntensitySlider = document.getElementById('todIntensitySlider');
+const todIntensityLabel = document.getElementById('todIntensityLabel');
+
+const todTurnArea = document.getElementById('todTurnArea');
+const todStatusText = document.getElementById('todStatusText');
+const todBottleContainer = document.getElementById('todBottleContainer');
+const todBottle = document.getElementById('todBottle');
+const todSpinBtn = document.getElementById('todSpinBtn');
+
+const todFateArea = document.getElementById('todFateArea');
+const todChooseTruthBtn = document.getElementById('todChooseTruthBtn');
+const todChooseDareBtn = document.getElementById('todChooseDareBtn');
+
+const todAskerArea = document.getElementById('todAskerArea');
+const todAskerTitle = document.getElementById('todAskerTitle');
+const todDbBtn = document.getElementById('todDbBtn');
+const todCustomBtn = document.getElementById('todCustomBtn');
+const todCustomInputArea = document.getElementById('todCustomInputArea');
+const todSendCustomBtn = document.getElementById('todSendCustomBtn');
+const todCustomInput = document.getElementById('todCustomInput');
+
+const todRevealArea = document.getElementById('todRevealArea');
+const todRevealType = document.getElementById('todRevealType');
+const todRevealText = document.getElementById('todRevealText');
+const todResolutionArea = document.getElementById('todResolutionArea');
+const todDoneBtn = document.getElementById('todDoneBtn');
+const todForfeitBtn = document.getElementById('todForfeitBtn');
+
+// Update showScreen to hide todScreen
+
 // --- ROUTING & CHAT ---
 function showScreen(screen) {
     nameScreen.classList.add('hidden'); 
     modeScreen.classList.add('hidden'); 
     lobbyScreen.classList.add('hidden');
     waitingScreen.classList.add('hidden');
+    todScreen.classList.add('hidden');
     hubScreen.classList.add('hidden'); 
     gameArea.classList.add('hidden'); 
     resultOverlay.classList.add('hidden');
@@ -816,11 +856,20 @@ socket.onmessage = (event) => {
         hubRoomDisplay.innerText = `Room Code: ${myRoomCode}`; 
         showScreen(hubScreen); 
     }
-    else if (data.type === "launch_game") { 
+        else if (data.type === "launch_game") { 
         if (data.game === 'tictactoe') {
             myRole = data.role;
             runRoulette(data.all_players, data.role, data.symbol, data);
         } else if (data.game === 'ludo') {
+            myLudoColor = data.color;
+            runRoulette(data.all_players.map(p=>p.name), "Player", data.color.toUpperCase(), data);
+        } else if (data.game === 'tod') {
+            todPlayers = data.all_players || [];
+            todMode = data.mode;
+            todIntensity = data.intensity;
+            initTodGame();
+        }
+    } else if (data.game === 'ludo') {
             myLudoColor = data.color;
             runRoulette(data.all_players.map(p=>p.name), "Player", data.color.toUpperCase(), data);
         }
@@ -867,3 +916,141 @@ socket.onmessage = (event) => {
         } 
     }
 };
+
+
+// --- TRUTH OR DARE LOGIC (MULTIPLAYER) ---
+let todPlayers = [];
+let todMode = "both";
+let todIntensity = 3;
+let currentAsker = "";
+let currentVictim = "";
+
+if (launchToD) {
+    launchToD.addEventListener('click', () => {
+        todSettingsModal.classList.remove('hidden');
+    });
+}
+
+if (cancelTodBtn) {
+    cancelTodBtn.addEventListener('click', () => {
+        todSettingsModal.classList.add('hidden');
+    });
+}
+
+if (todIntensitySlider) {
+    todIntensitySlider.addEventListener('input', (e) => {
+        todIntensityLabel.innerText = `Level ${e.target.value}`;
+    });
+}
+
+function resetTodUI() {
+    todTurnArea.classList.add('hidden');
+    todBottleContainer.classList.add('hidden');
+    todSpinBtn.classList.add('hidden');
+    todFateArea.classList.add('hidden');
+    todAskerArea.classList.add('hidden');
+    todCustomInputArea.classList.add('hidden');
+    todRevealArea.classList.add('hidden');
+    todResolutionArea.classList.add('hidden');
+}
+
+if (startTodBtn) {
+    startTodBtn.addEventListener('click', () => {
+        const mode = document.getElementById('todModeSelect').value;
+        const intensity = todIntensitySlider.value;
+        socket.send(JSON.stringify({ 
+            action: "launch_game", 
+            game: "tod", 
+            mode: mode, 
+            intensity: intensity 
+        }));
+    });
+}
+
+if (leaveTodBtn) {
+    leaveTodBtn.addEventListener('click', () => {
+        socket.send(JSON.stringify({action: "return_hub"}));
+    });
+}
+
+function initTodGame() {
+    todSettingsModal.classList.add('hidden');
+    showScreen(todScreen);
+    resetToSpin();
+}
+
+function resetToSpin() {
+    resetTodUI();
+    todTurnArea.classList.remove('hidden');
+    todBottleContainer.classList.remove('hidden');
+    todBottle.style.transform = `rotate(0deg)`;
+    todStatusText.innerText = "Waiting for someone to spin...";
+    todSpinBtn.classList.remove('hidden');
+}
+
+if (todSpinBtn) {
+    todSpinBtn.addEventListener('click', () => {
+        let victims = todPlayers.filter(p => p.name !== myName);
+        if (victims.length === 0) victims = todPlayers; // Fallback if playing solo
+        let randomVictim = victims[Math.floor(Math.random() * victims.length)].name;
+        
+        socket.send(JSON.stringify({
+            action: "tod_event",
+            event: "spin",
+            asker: myName,
+            victim: randomVictim,
+            deg: Math.floor(Math.random() * 360) + 1440
+        }));
+    });
+}
+
+if (todChooseTruthBtn) {
+    todChooseTruthBtn.addEventListener('click', () => { 
+        socket.send(JSON.stringify({ action: "tod_event", event: "fate_chosen", fate: "TRUTH" }));
+    });
+}
+
+if (todChooseDareBtn) {
+    todChooseDareBtn.addEventListener('click', () => { 
+        socket.send(JSON.stringify({ action: "tod_event", event: "fate_chosen", fate: "DARE" }));
+    });
+}
+
+if (todDbBtn) {
+    todDbBtn.addEventListener('click', () => {
+        const fate = todRevealType.innerText;
+        const text = fate === 'TRUTH' 
+            ? "What is the most embarrassing thing you've done in front of a crush? (Mock Database)" 
+            : "Do a crazy dance in the middle of the room for 30 seconds. (Mock Database)";
+        socket.send(JSON.stringify({ action: "tod_event", event: "reveal", fate: fate, text: text }));
+    });
+}
+
+if (todCustomBtn) {
+    todCustomBtn.addEventListener('click', () => {
+        todCustomInputArea.classList.remove('hidden');
+    });
+}
+
+if (todSendCustomBtn) {
+    todSendCustomBtn.addEventListener('click', () => {
+        const txt = todCustomInput.value.trim();
+        const fate = todRevealType.innerText;
+        if(txt) {
+           socket.send(JSON.stringify({ action: "tod_event", event: "reveal", fate: fate, text: txt }));
+           todCustomInput.value = "";
+        }
+    });
+}
+
+if (todDoneBtn) { 
+    todDoneBtn.addEventListener('click', () => {
+        socket.send(JSON.stringify({ action: "tod_event", event: "resolved" }));
+    }); 
+}
+
+if (todForfeitBtn) { 
+    todForfeitBtn.addEventListener('click', () => {
+        socket.send(JSON.stringify({ action: "tod_event", event: "resolved" }));
+    });
+}

@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Private Arcade Hub</title>
-    <link rel="stylesheet" href="style.css?v=usefullgames18">
+    <link rel="stylesheet" href="style.css?v=usefullgames20">
 </head>
 <body>
     <!-- ANIMATED LIQUID BACKGROUND -->
@@ -184,10 +184,9 @@
                 <h3>Ludo</h3>
             </div>
             
-            <div class="game-card glass locked-game">
-                <div class="game-icon">✊✋✌️</div>
-                <h3>RPS</h3>
-                <span class="badge">Coming Soon</span>
+            <div class="game-card glass" id="launchToD">
+                <div class="game-icon">🎲😈</div>
+                <h3>Truth or Dare</h3>
             </div>
         </div>
         
@@ -220,7 +219,92 @@
                 <div class="cell glass" data-index="8"></div>
             </div>
 
-            <!-- Ludo Board -->
+            
+    <!-- TRUTH OR DARE SETTINGS MODAL -->
+    <div id="todSettingsModal" class="glass-card glass hidden" style="position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 10000; width: 90vw; max-width: 400px; text-align: center;">
+        <h2 style="margin-bottom: 20px;">Truth or Dare Settings</h2>
+        
+        <div style="margin-bottom: 20px; text-align: left;">
+            <label style="font-weight: bold; margin-bottom: 5px; display: block;">Game Mode</label>
+            <select id="todModeSelect" class="glass-input" style="width: 100%; padding: 10px;">
+                <option value="both">Truth & Dare Both</option>
+                <option value="truth">Truth Only</option>
+                <option value="dare">Dare Only</option>
+            </select>
+        </div>
+        
+        <div style="margin-bottom: 30px; text-align: left;">
+            <label style="font-weight: bold; margin-bottom: 5px; display: block;">Intensity Level (1-5)</label>
+            <input type="range" id="todIntensitySlider" min="1" max="5" value="3" style="width: 100%;">
+            <div style="display: flex; justify-content: space-between; font-size: 0.8rem; margin-top: 5px;">
+                <span>Fun</span>
+                <span id="todIntensityLabel">Level 3</span>
+                <span>Extreme</span>
+            </div>
+        </div>
+        
+        <div style="display: flex; gap: 10px;">
+            <button id="cancelTodBtn" class="glass btn-secondary" style="flex: 1;">Cancel</button>
+            <button id="startTodBtn" class="glass btn-primary" style="flex: 1;">Start Game</button>
+        </div>
+    </div>
+
+
+    <!-- TRUTH OR DARE GAME SCREEN -->
+    <div id="todScreen" class="glass-card glass hidden" style="width: 95vw; max-width: 600px; min-height: 400px; display: flex; flex-direction: column; justify-content: space-between;">
+        <div class="header" style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
+            <h2 style="margin: 0;">🎲😈 Truth or Dare</h2>
+            <button id="leaveTodBtn" class="glass btn-danger small-btn">Leave</button>
+        </div>
+        
+        <!-- TURN INDICATOR -->
+        <div id="todTurnArea" style="text-align: center; margin: 20px 0; flex: 1; display: flex; flex-direction: column; justify-content: center; align-items: center;">
+            <h3 id="todStatusText" style="color: var(--primary-color); font-size: 1.5rem; margin-bottom: 15px;">Waiting for spin...</h3>
+            
+            <!-- Spinning Bottle Area -->
+            <div id="todBottleContainer" class="hidden" style="width: 150px; height: 150px; border-radius: 50%; border: 2px dashed rgba(255,255,255,0.3); position: relative; margin: 0 auto; display: flex; align-items: center; justify-content: center;">
+                <div id="todBottle" style="font-size: 3rem; transition: transform 3s cubic-bezier(0.25, 1, 0.5, 1);">🍾</div>
+            </div>
+            
+            <button id="todSpinBtn" class="glass btn-primary hidden" style="margin-top: 20px; font-size: 1.2rem; padding: 10px 30px;">Spin Bottle!</button>
+        </div>
+        
+        <!-- FATE SELECTION (For Victim) -->
+        <div id="todFateArea" class="hidden" style="text-align: center; margin: 20px 0;">
+            <h3 style="margin-bottom: 20px;">Choose your fate!</h3>
+            <div style="display: flex; gap: 15px; justify-content: center;">
+                <button id="todChooseTruthBtn" class="glass btn-primary" style="background: var(--accent-blue); flex: 1;">Truth 😇</button>
+                <button id="todChooseDareBtn" class="glass btn-danger" style="background: var(--accent-red); flex: 1;">Dare 😈</button>
+            </div>
+        </div>
+        
+        <!-- ASKER SELECTION (For Asker) -->
+        <div id="todAskerArea" class="hidden" style="text-align: center; margin: 20px 0;">
+            <h3 style="margin-bottom: 10px;" id="todAskerTitle">Pick a prompt for Player!</h3>
+            <div style="display: flex; gap: 10px; justify-content: center; margin-bottom: 15px;">
+                <button id="todDbBtn" class="glass btn-primary" style="flex: 1;">🎲 Database</button>
+                <button id="todCustomBtn" class="glass btn-secondary" style="flex: 1;">✍️ Custom</button>
+            </div>
+            
+            <div id="todCustomInputArea" class="hidden">
+                <textarea id="todCustomInput" class="glass-input" placeholder="Type your custom truth/dare..." style="width: 100%; height: 80px; resize: none; margin-bottom: 10px;"></textarea>
+                <button id="todSendCustomBtn" class="glass btn-primary" style="width: 100%;">Send Prompt</button>
+            </div>
+        </div>
+        
+        <!-- REVEAL AREA (For everyone) -->
+        <div id="todRevealArea" class="hidden" style="text-align: center; margin: 20px 0; background: rgba(0,0,0,0.2); padding: 20px; border-radius: 15px; border: 1px solid rgba(255,255,255,0.1);">
+            <div id="todRevealType" style="font-weight: 800; font-size: 1.2rem; color: var(--accent-yellow); margin-bottom: 10px; text-transform: uppercase; letter-spacing: 2px;">DARE</div>
+            <p id="todRevealText" style="font-size: 1.4rem; font-weight: 600; line-height: 1.4;">Waiting for prompt...</p>
+            
+            <div id="todResolutionArea" class="hidden" style="display: flex; gap: 10px; justify-content: center; margin-top: 20px;">
+                <button id="todDoneBtn" class="glass btn-primary" style="background: var(--accent-green); flex: 1;">Completed ✅</button>
+                <button id="todForfeitBtn" class="glass btn-danger" style="flex: 1;">Forfeit 🏳️</button>
+            </div>
+        </div>
+    </div>
+
+<!-- Ludo Board -->
             <div id="ludoWrapper" class="hidden">
                 <div class="ludo-dashboard glass-card glass">
                     <div class="dice-block">
@@ -273,6 +357,6 @@
         </div>
     </div>
 
-    <script src="script.js"></script>
+    <script src="script.js?v=usefullgames20"></script>
 </body>
 </html>

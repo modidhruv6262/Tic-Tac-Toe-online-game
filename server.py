@@ -145,6 +145,13 @@ async def game_handler(websocket):
                     for p in rooms[room_code]["players"]:
                         await p["ws"].send(json.dumps({"type": "chat", "sender": sender_name, "message": data.get("message")}))
 
+            elif action == "tod_event":
+                room_code = player_rooms.get(websocket)
+                if room_code in rooms:
+                    for p in rooms[room_code]["players"]:
+                        # Relay the exact data packet to all clients in the room
+                        await p["ws"].send(json.dumps(data))
+
             elif action == "restart":
                 room_code = player_rooms.get(websocket)
                 if room_code in rooms:
