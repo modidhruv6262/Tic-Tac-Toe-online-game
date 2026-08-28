@@ -9,6 +9,7 @@ const saveNameBtn = document.getElementById('saveNameBtn');
 const modeScreen = document.getElementById('modeScreen');
 const vsBotBtn = document.getElementById('vsBotBtn');
 const vsFriendBtn = document.getElementById('vsFriendBtn');
+const backToNameBtn = document.getElementById('backToNameBtn');
 
 const lobbyScreen = document.getElementById('lobbyScreen');
 const lobbyActions = document.getElementById('lobbyActions');
@@ -56,6 +57,10 @@ const chatBox = document.getElementById('chatBox');
 const chatMessages = document.getElementById('chatMessages');
 const chatInput = document.getElementById('chatInput');
 const sendChatBtn = document.getElementById('sendChatBtn');
+const chatToggleBtn = document.getElementById('chatToggleBtn');
+const chatIcon = document.getElementById('chatIcon');
+const chatBadge = document.getElementById('chatBadge');
+let unreadMessages = 0;
 
 const rouletteOverlay = document.getElementById('rouletteOverlay');
 const rouletteName = document.getElementById('rouletteName');
@@ -88,30 +93,59 @@ function showScreen(screen) {
     screen.classList.remove('hidden');
 }
 
-function showChat() { 
+function openChat() {
+    if(chatToggleBtn) chatToggleBtn.classList.add('hidden');
     chatBox.classList.remove('hidden'); 
     document.body.classList.add('chat-active'); 
+    unreadMessages = 0;
+    if(chatBadge) chatBadge.classList.add('hidden');
+}
+
+function showChat() { 
+    if (window.innerWidth <= 849) {
+        // Mobile: just show the toggle button, keep chat closed by default
+        if(chatToggleBtn) chatToggleBtn.classList.remove('hidden');
+        return;
+    }
+    openChat();
 }
 
 function hideChat() { 
+    if(chatToggleBtn) chatToggleBtn.classList.remove('hidden');
     chatBox.classList.add('hidden'); 
     document.body.classList.remove('chat-active'); 
 }
+
+if(chatToggleBtn) {
+    chatToggleBtn.addEventListener('click', () => {
+        openChat();
+    });
+}
+
+const closeChatBtn = document.getElementById('closeChatBtn');
+if(closeChatBtn) {
+    closeChatBtn.addEventListener('click', () => {
+        hideChat();
+    });
+}
+
+
+
 
 difficultySlider.addEventListener('input', (e) => { 
     botDifficulty = parseInt(e.target.value); 
     diffLabelText.innerText = {1:"Easy", 2:"Medium", 3:"Hard"}[botDifficulty]; 
 });
 
-let isDarkMode = false;
+let isDarkMode = true; // Fix: start true because HTML is dark by default
 themeToggle.addEventListener('click', () => {
     isDarkMode = !isDarkMode;
     if (isDarkMode) {
-        document.body.setAttribute('data-theme', 'dark');
-        themeToggle.innerText = '☀️ Light';
+        document.documentElement.setAttribute('data-theme', 'dark');
+        themeToggle.innerHTML = '☀️<span class="theme-text"> Light</span>';
     } else {
-        document.body.removeAttribute('data-theme');
-        themeToggle.innerText = '🌙 Dark';
+        document.documentElement.removeAttribute('data-theme');
+        themeToggle.innerHTML = '🌙<span class="theme-text"> Dark</span>';
     }
 });
 
@@ -143,6 +177,10 @@ vsFriendBtn.addEventListener('click', () => {
     lobbyActions.classList.remove('hidden');
     capacitySetup.classList.add('hidden');
     showScreen(lobbyScreen); 
+});
+
+backToNameBtn.addEventListener('click', () => {
+    showScreen(nameScreen);
 });
 
 // --- SMART BACK BUTTON LOGIC ---
@@ -663,9 +701,14 @@ cells.forEach(cell => {
 
 function checkWin() {
     let winCls = ''; let won = false;
+    const strikeClasses = ['row-1', 'row-2', 'row-3', 'col-1', 'col-2', 'col-3', 'diag-1', 'diag-2'];
     for (let i = 0; i < winningConditions.length; i++) {
         const [a, b, c] = winningConditions[i];
-        if (cells[a].innerText !== "" && cells[a].innerText === cells[b].innerText && cells[a].innerText === cells[c].innerText) { won = true; winCls = winningConditions[i].class; break; }
+        if (cells[a].innerText !== "" && cells[a].innerText === cells[b].innerText && cells[a].innerText === cells[c].innerText) { 
+            won = true; 
+            winCls = strikeClasses[i]; 
+            break; 
+        }
     }
     if (won) {
         gameActive = false; 
@@ -684,10 +727,10 @@ function checkWin() {
             resultTitle.style.color = wSym === 'X' ? 'var(--accent-x)' : 'var(--accent-o)'; 
             resultOverlay.classList.remove('hidden'); 
         }, 500); 
-        strike.style.backgroundColor = wSym === 'X' ? 'var(--accent-x)' : 'var(--accent-o)'; 
+        strike.style.color = wSym === 'X' ? 'var(--accent-x)' : 'var(--accent-o)'; 
         strike.className = `strike ${winCls}`;
     } else if ([...cells].every(c => c.innerText !== "")) { 
-        gameActive = false; setTimeout(() => { resultTitle.innerText = "STALEMATE!"; resultTitle.style.color = 'var(--secondary-color)'; resultOverlay.classList.remove('hidden'); }, 400); 
+        gameActive = false; setTimeout(() => { resultTitle.innerText = "DRAW!"; resultTitle.style.color = 'var(--secondary-color)'; resultOverlay.classList.remove('hidden'); }, 400); 
     }
 }
 
@@ -740,12 +783,12 @@ socket.onmessage = (event) => {
     const data = JSON.parse(event.data);
     
     if (data.type === "room_created") { 
-        myRoomCode = data.room; 
+        showChat(); myRoomCode = data.room; 
         myRole = 'Host'; 
         // Do not show hub yet, wait for lobby update
     }
     else if (data.type === "lobby_update") {
-        myRoomCode = data.room;
+        showChat(); myRoomCode = data.room;
         waitingRoomCode.innerText = myRoomCode;
         waitingStatus.innerText = `Waiting for players... (${data.players.length}/${data.capacity})`;
         
@@ -758,7 +801,7 @@ socket.onmessage = (event) => {
         showChat();
     }
     else if (data.type === "hub_start") { 
-        myRoomCode = data.room; 
+        showChat(); myRoomCode = data.room; 
         opponentName = data.host; 
         
         if (playerName === data.host) { 
@@ -793,6 +836,14 @@ socket.onmessage = (event) => {
         const color = data.sender === playerName ? 'var(--accent-x)' : 'var(--accent-o)'; 
         msg.innerHTML = `<span style="color: ${color}">${data.sender}:</span> ${data.message}`; 
         chatMessages.appendChild(msg); chatMessages.scrollTop = chatMessages.scrollHeight; 
+        
+        if (chatBox.classList.contains('hidden') && data.sender !== playerName) {
+            unreadMessages++;
+            if (chatBadge) {
+                chatBadge.innerText = unreadMessages;
+                chatBadge.classList.remove('hidden');
+            }
+        }
     }
     else if (data.type === "restart") { 
         if(activeGame === 'tictactoe') { 

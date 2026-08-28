@@ -1,53 +1,63 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="dark">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Private Arcade Hub</title>
-    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="style.css?v=usefullgames18">
 </head>
 <body>
-    <button id="themeToggle" class="clay theme-btn">🌙 Dark</button>
+    <!-- ANIMATED LIQUID BACKGROUND -->
+    <div id="bgAnimation">
+        <div class="orb orb-1"></div>
+        <div class="orb orb-2"></div>
+        <div class="orb orb-3"></div>
+        <div class="orb orb-4"></div>
+        <div class="orb orb-5"></div>
+    </div>
+
+    <button id="themeToggle" class="glass theme-btn">☀️<span class="theme-text"> Light</span></button>
 
     <h1>Arcade Hub</h1>
     
     <!-- 1. IDENTIFICATION -->
-    <div id="nameScreen" class="clay-card clay">
+    <div id="nameScreen" class="glass-card glass">
         <h2>Welcome!</h2>
-        <input type="text" id="nameInput" placeholder="e.g., Player" maxlength="12" class="clay">
-        <button id="saveNameBtn" class="clay btn-primary">Continue</button>
+        <input type="text" id="nameInput" placeholder="e.g., Player" maxlength="12" class="glass-input">
+        <button id="saveNameBtn" class="glass btn-primary">Continue</button>
     </div>
 
     <!-- 2. MODE SELECTION -->
-    <div id="modeScreen" class="clay-card clay hidden">
+    <div id="modeScreen" class="glass-card glass hidden">
         <h2 id="greetingText"></h2>
         <p class="subtitle">Choose your path:</p>
         <div class="mode-grid">
-            <button id="vsBotBtn" class="clay btn-secondary mode-btn">🤖 Play vs. Bot</button>
-            <button id="vsFriendBtn" class="clay btn-primary mode-btn">👥 Multiplayer</button>
+            <button id="vsBotBtn" class="glass btn-secondary mode-btn">🤖 Player vs. Bot</button>
+            <button id="vsFriendBtn" class="glass btn-primary mode-btn">👥 Multiplayer</button>
         </div>
+        <button id="backToNameBtn" class="glass btn-danger small-btn mt-10">Back</button>
     </div>
 
     <!-- 3. MULTIPLAYER LOBBY SETUP -->
-    <div id="lobbyScreen" class="clay-card clay hidden">
+    <div id="lobbyScreen" class="glass-card glass hidden">
         <h2>Multiplayer Lobby</h2>
         
         <!-- Default Lobby Actions -->
         <div id="lobbyActions" style="width: 100%;">
-            <button id="createBtn" class="clay btn-primary">Create New Room</button>
+            <button id="createBtn" class="glass btn-primary">Create New Room</button>
             <p class="subtitle mt-10">OR</p>
-            <input type="text" id="codeInput" placeholder="Enter 4-digit code" maxlength="4" class="clay">
-            <button id="joinBtn" class="clay btn-secondary">Join Existing Room</button>
+            <input type="text" id="codeInput" placeholder="Enter 4-digit code" maxlength="4" class="glass-input">
+            <button id="joinBtn" class="glass btn-secondary">Join Existing Room</button>
         </div>
 
-        <!-- Hidden Capacity Selection (Strictly Horizontal with 3D Rendered SVGs) -->
+        <!-- Hidden Capacity Selection -->
         <div id="capacitySetup" class="hidden" style="width: 100%;">
             <h3 style="color: var(--primary-color);">Select Room Size</h3>
             
             <div class="capacity-row">
                 
                 <!-- 2 PLAYER CARD -->
-                <div class="game-card clay capacity-card" data-cap="2">
+                <div class="game-card glass capacity-card" data-cap="2">
                     <svg viewBox="0 0 60 45" width="100%" height="45px" style="margin-bottom: 5px;">
                         <defs>
                             <!-- 3D Gradients -->
@@ -86,7 +96,7 @@
                 </div>
                 
                 <!-- 3 PLAYER CARD -->
-                <div class="game-card clay capacity-card" data-cap="3">
+                <div class="game-card glass capacity-card" data-cap="3">
                     <svg viewBox="0 0 90 45" width="100%" height="45px" style="margin-bottom: 5px;">
                         <g filter="url(#shadow3d)" transform="translate(6, 4)">
                             <circle cx="12" cy="10" r="9" fill="url(#rRed)" />
@@ -104,8 +114,8 @@
                     <h3>3P</h3>
                 </div>
                 
-                <!-- 4 PLAYER CARD (Un-congested 2x2 Layout) -->
-                <div class="game-card clay capacity-card" data-cap="4">
+                <!-- 4 PLAYER CARD -->
+                <div class="game-card glass capacity-card" data-cap="4">
                     <svg viewBox="0 0 65 65" width="100%" height="45px" style="margin-bottom: 5px;">
                         <g filter="url(#shadow3d)" transform="translate(4, 2) scale(0.85)">
                             <circle cx="12" cy="10" r="9" fill="url(#rRed)" />
@@ -131,31 +141,31 @@
         </div>
         
         <h3 id="lobbyMessage"></h3>
-        <button id="backToModeBtn" class="clay btn-danger small-btn mt-10">← Back</button>
+        <button id="backToModeBtn" class="glass btn-danger small-btn mt-10">← Back</button>
     </div>
 
     <!-- 4. LIVE WAITING ROOM -->
-    <div id="waitingScreen" class="clay-card clay hidden">
+    <div id="waitingScreen" class="glass-card glass hidden">
         <h2>Waiting Room</h2>
         <h1 id="waitingRoomCode" style="font-size: 3rem; color: var(--primary-color); margin: 0;"></h1>
         <p class="subtitle">Share this code with friends!</p>
         
-        <div id="playerRoster" class="player-roster clay-inset" style="width: 100%; padding: 15px; border-radius: 15px; text-align: left; margin: 15px 0;">
+        <div id="playerRoster" class="player-roster glass-inset" style="width: 100%; padding: 15px; border-radius: 15px; text-align: left; margin: 15px 0;">
             <!-- JS will populate player names here -->
         </div>
         
         <h3 id="waitingStatus">Waiting for players...</h3>
-        <button id="leaveWaitingBtn" class="clay btn-danger small-btn mt-10">Leave Lobby</button>
+        <button id="leaveWaitingBtn" class="glass btn-danger small-btn mt-10">Leave Lobby</button>
     </div>
 
     <!-- 5. THE SHARED GAME HUB -->
-    <div id="hubScreen" class="clay-card clay hub-card hidden">
+    <div id="hubScreen" class="glass-card glass hub-card hidden">
         <h2 id="hubRoleBanner" class="role-banner">Host: Pick a game!</h2>
         <h3 id="hubRoomDisplay"></h3>
 
-        <div id="difficultyContainer" class="difficulty-box clay-inset hidden">
+        <div id="difficultyContainer" class="difficulty-box glass-inset hidden">
             <label for="difficultySlider" class="diff-label">Bot Difficulty: <span id="diffLabelText">Medium</span></label>
-            <input type="range" id="difficultySlider" min="1" max="3" value="2" step="1" class="clay-slider">
+            <input type="range" id="difficultySlider" min="1" max="3" value="2" step="1" class="glass-slider">
             <div class="slider-marks">
                 <span>Easy</span>
                 <span>Medium</span>
@@ -164,17 +174,17 @@
         </div>
         
         <div class="game-grid">
-            <div class="game-card clay" id="launchTicTacToe">
+            <div class="game-card glass" id="launchTicTacToe">
                 <div class="game-icon">❌⭕</div>
                 <h3>Tic-Tac-Toe</h3>
             </div>
             
-            <div class="game-card clay" id="launchLudo">
+            <div class="game-card glass" id="launchLudo">
                 <div class="game-icon">🎲</div>
                 <h3>Ludo</h3>
             </div>
             
-            <div class="game-card clay locked-game">
+            <div class="game-card glass locked-game">
                 <div class="game-icon">✊✋✌️</div>
                 <h3>RPS</h3>
                 <span class="badge">Coming Soon</span>
@@ -182,40 +192,40 @@
         </div>
         
         <div class="hub-controls">
-            <button id="leaveHubBtn" class="clay btn-danger small-btn">Leave Room</button>
+            <button id="leaveHubBtn" class="glass btn-danger small-btn">Leave Room</button>
         </div>
     </div>
 
     <!-- 6. THE ACTIVE GAME AREA -->
     <div id="gameArea" class="hidden">
         <div id="gameControls">
-            <button id="restartBtn" class="clay btn-primary">Restart Match</button>
-            <button id="backToHubBtn" class="clay btn-danger">Return to Hub</button>
+            <button id="restartBtn" class="glass btn-primary">Restart Match</button>
+            <button id="backToHubBtn" class="glass btn-danger">Return to Hub</button>
         </div>
 
         <h2 id="statusText">Loading...</h2>
         
         <div id="gameLayout">
             <!-- Tic Tac Toe Board -->
-            <div id="tictactoeBoard" class="board clay hidden">
+            <div id="tictactoeBoard" class="board glass hidden">
                 <div id="strike" class="strike hidden"></div>
-                <div class="cell clay" data-index="0"></div>
-                <div class="cell clay" data-index="1"></div>
-                <div class="cell clay" data-index="2"></div>
-                <div class="cell clay" data-index="3"></div>
-                <div class="cell clay" data-index="4"></div>
-                <div class="cell clay" data-index="5"></div>
-                <div class="cell clay" data-index="6"></div>
-                <div class="cell clay" data-index="7"></div>
-                <div class="cell clay" data-index="8"></div>
+                <div class="cell glass" data-index="0"></div>
+                <div class="cell glass" data-index="1"></div>
+                <div class="cell glass" data-index="2"></div>
+                <div class="cell glass" data-index="3"></div>
+                <div class="cell glass" data-index="4"></div>
+                <div class="cell glass" data-index="5"></div>
+                <div class="cell glass" data-index="6"></div>
+                <div class="cell glass" data-index="7"></div>
+                <div class="cell glass" data-index="8"></div>
             </div>
 
             <!-- Ludo Board -->
             <div id="ludoWrapper" class="hidden">
-                <div class="ludo-dashboard clay-card clay">
+                <div class="ludo-dashboard glass-card glass">
                     <div class="dice-block">
                         <div id="ludoDice" class="dice-cube"></div>
-                        <button id="rollDiceBtn" class="clay btn-primary">Roll Dice</button>
+                        <button id="rollDiceBtn" class="glass btn-primary">Roll Dice</button>
                     </div>
                 </div>
                 <div id="ludoBoard" class="ludo-board">
@@ -225,19 +235,29 @@
         </div>
     </div>
 
+    <!-- FLOATING CHAT BUTTON -->
+    <button id="chatToggleBtn" class="glass btn-primary hidden" style="position: fixed; bottom: 20px; right: 20px; z-index: 9999; width: 60px; height: 60px; border-radius: 50%; font-size: 1.5rem; padding: 0; display: flex; align-items: center; justify-content: center; box-shadow: 0 10px 30px rgba(0,0,0,0.5); cursor: pointer;">
+        <span id="chatIcon">💬</span>
+        <span id="chatBadge" class="hidden" style="position: absolute; top: -5px; right: -5px; background: #ef4444; color: white; border-radius: 50%; width: 24px; height: 24px; font-size: 12px; font-weight: bold; display: flex; align-items: center; justify-content: center; box-shadow: 0 0 10px #ef4444;">0</span>
+    </button>
+
     <!-- GLOBAL SIDEBAR CHAT -->
-    <div id="chatBox" class="clay-card clay hidden">
-        <h3 class="chat-header">Room Chat</h3>
-        <div id="chatMessages" class="clay-inset"></div>
+    <div id="chatBox" class="glass-card glass hidden">
+        <div style="display: flex; justify-content: space-between; align-items: center; width: 100%; border-bottom: 1px solid rgba(255,255,255,0.2); padding-bottom: 10px; margin-bottom: 10px;">
+            <div style="width: 40px;"></div>
+            <h3 class="chat-header" style="margin: 0; text-align: center; flex: 1;">Room Chat</h3>
+            <button id="closeChatBtn" style="background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); font-size: 1.1rem; cursor: pointer; color: white; padding: 6px 10px; border-radius: 10px; backdrop-filter: blur(10px); width: 40px;">❌</button>
+        </div>
+        <div id="chatMessages" class="glass-inset"></div>
         <div class="chat-input-area">
-            <input type="text" id="chatInput" placeholder="Type a message..." maxlength="100" class="clay">
-            <button id="sendChatBtn" class="clay btn-primary">Send</button>
+            <input type="text" id="chatInput" placeholder="Type a message..." maxlength="100" class="glass-input">
+            <button id="sendChatBtn" class="glass btn-primary">Send</button>
         </div>
     </div>
 
     <!-- ROULETTE OVERLAY -->
-    <div id="rouletteOverlay" class="hidden" style="position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.8); backdrop-filter: blur(10px); z-index: 1000; display: flex; justify-content: center; align-items: center;">
-        <div class="clay-card clay result-card">
+    <div id="rouletteOverlay" class="hidden" style="position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.4); backdrop-filter: blur(24px) saturate(120%); z-index: 1000; display: flex; justify-content: center; align-items: center;">
+        <div class="glass-card glass result-card">
             <h2 style="color: var(--secondary-color);">Choosing Players...</h2>
             <h1 id="rouletteName" style="font-size: 3rem; margin: 20px 0;">???</h1>
             <h3 id="rouletteRole" style="opacity: 0.8;"></h3>
@@ -246,10 +266,10 @@
 
     <!-- RESULT OVERLAY -->
     <div id="resultOverlay" class="hidden">
-        <div class="clay-card clay result-card">
+        <div class="glass-card glass result-card">
             <h1 id="resultTitle">VICTORY!</h1>
-            <button id="overlayRestartBtn" class="clay btn-primary">Play Again</button>
-            <button id="overlayHubBtn" class="clay btn-secondary mt-10">Return to Hub</button>
+            <button id="overlayRestartBtn" class="glass btn-primary">Play Again</button>
+            <button id="overlayHubBtn" class="glass btn-secondary mt-10">Return to Hub</button>
         </div>
     </div>
 
