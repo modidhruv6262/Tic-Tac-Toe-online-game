@@ -869,10 +869,6 @@ socket.onmessage = (event) => {
             todIntensity = data.intensity;
             initTodGame();
         }
-    } else if (data.game === 'ludo') {
-            myLudoColor = data.color;
-            runRoulette(data.all_players.map(p=>p.name), "Player", data.color.toUpperCase(), data);
-        }
     }
     else if (data.type === "return_hub") { showScreen(hubScreen); }
     else if (data.type === "dice_rolled") { animateDice(data.value, data.roller); }
@@ -914,6 +910,56 @@ socket.onmessage = (event) => {
             else statusText.innerText = currentSymbol === (myRole === 'Player 1' ? 'X' : 'O') ? "Your Turn!" : "Opponent's Turn..."; 
             checkWin(); 
         } 
+    }
+    else if (data.action === "tod_event") {
+        if (data.event === "spin") {
+            currentAsker = data.asker;
+            currentVictim = data.victim;
+            resetTodUI();
+            todTurnArea.classList.remove('hidden');
+            todBottleContainer.classList.remove('hidden');
+            todStatusText.innerText = `${currentAsker} is spinning...`;
+            todBottle.style.transform = `rotate(${data.deg}deg)`;
+            
+            setTimeout(() => {
+                todStatusText.innerText = `Bottle points to: ${currentVictim}!`;
+                setTimeout(() => {
+                    resetTodUI();
+                    todTurnArea.classList.remove('hidden');
+                    if (myName === currentVictim) {
+                        todStatusText.innerText = `You were chosen! What is your fate?`;
+                        todFateArea.classList.remove('hidden');
+                    } else {
+                        todStatusText.innerText = `${currentVictim} is choosing their fate...`;
+                    }
+                }, 1500);
+            }, 3000);
+        }
+        else if (data.event === "fate_chosen") {
+            const fate = data.fate;
+            todRevealType.innerText = fate;
+            resetTodUI();
+            if (myName === currentAsker) {
+                todAskerArea.classList.remove('hidden');
+                todAskerTitle.innerText = `${currentVictim} chose ${fate}. Pick a prompt!`;
+            } else {
+                todTurnArea.classList.remove('hidden');
+                todStatusText.innerText = `${currentAsker} is picking a ${fate} for ${currentVictim}...`;
+            }
+        }
+        else if (data.event === "reveal") {
+            resetTodUI();
+            todRevealArea.classList.remove('hidden');
+            todRevealType.innerText = data.fate;
+            todRevealText.innerText = data.text;
+            
+            if (myName === currentVictim) {
+                todResolutionArea.classList.remove('hidden');
+            }
+        }
+        else if (data.event === "resolved") {
+            resetToSpin();
+        }
     }
 };
 
