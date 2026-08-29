@@ -84,7 +84,7 @@ let botDifficulty = 2;
 
 // --- TRUTH OR DARE UI ---
 const launchToD = document.getElementById('launchToD');
-const todSettingsModal = document.getElementById('todSettingsModal');
+const todSettingsScreen = document.getElementById('todSettingsScreen');
 const cancelTodBtn = document.getElementById('cancelTodBtn');
 const startTodBtn = document.getElementById('startTodBtn');
 const todScreen = document.getElementById('todScreen');
@@ -127,6 +127,7 @@ function showScreen(screen) {
     lobbyScreen.classList.add('hidden');
     waitingScreen.classList.add('hidden');
     todScreen.classList.add('hidden');
+    if (typeof todSettingsScreen !== 'undefined' && todSettingsScreen) todSettingsScreen.classList.add('hidden');
     hubScreen.classList.add('hidden'); 
     gameArea.classList.add('hidden'); 
     resultOverlay.classList.add('hidden');
@@ -978,13 +979,13 @@ if (launchToD) {
     launchToD.addEventListener('click', () => {
         if (myRole !== 'Host' && currentMode !== 'bot') return; // Prevent non-hosts
         if (launchToD.classList.contains('locked-game')) return; // Extra safety
-        todSettingsModal.classList.remove('hidden');
+        showScreen(todSettingsScreen);
     });
 }
 
 if (cancelTodBtn) {
     cancelTodBtn.addEventListener('click', () => {
-        todSettingsModal.classList.add('hidden');
+        showScreen(hubScreen);
     });
 }
 
@@ -1025,7 +1026,6 @@ if (leaveTodBtn) {
 }
 
 function initTodGame() {
-    todSettingsModal.classList.add('hidden');
     showScreen(todScreen);
     resetToSpin();
 }

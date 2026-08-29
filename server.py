@@ -108,6 +108,15 @@ async def game_handler(websocket):
                                 "color": colors[i],
                                 "all_players": [{"name": pl["name"], "color": colors[idx]} for idx, pl in enumerate(players)]
                             }))
+                    elif game == "tod":
+                        for p in players:
+                            await p["ws"].send(json.dumps({
+                                "type": "launch_game",
+                                "game": "tod",
+                                "mode": data.get("mode", "both"),
+                                "intensity": data.get("intensity", 3),
+                                "all_players": [{"name": pl["name"]} for pl in players]
+                            }))
 
             elif action == "return_hub":
                 room_code = player_rooms.get(websocket)

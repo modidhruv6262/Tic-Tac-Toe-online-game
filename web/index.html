@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Private Arcade Hub</title>
-    <link rel="stylesheet" href="style.css?v=usefullgames22">
+    <link rel="stylesheet" href="style.css?v=usefullgames23">
 </head>
 <body>
     <!-- ANIMATED LIQUID BACKGROUND -->
@@ -235,9 +235,10 @@
         </div>
     </div>
 
-    <!-- TRUTH OR DARE SETTINGS MODAL -->
-    <div id="todSettingsModal" class="glass-card glass hidden" style="position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 10000; width: 90vw; max-width: 400px; text-align: center;">
-        <h2 style="margin-bottom: 20px;">Truth or Dare Settings</h2>
+    <!-- TRUTH OR DARE SETTINGS SCREEN -->
+    <div id="todSettingsScreen" class="hidden" style="display: flex; flex-direction: column; justify-content: center; align-items: center; min-height: 80vh;">
+        <div class="glass-card glass" style="width: 90vw; max-width: 400px; text-align: center;">
+            <h2 style="margin-bottom: 20px;">Truth or Dare Settings</h2>
         
         <div style="margin-bottom: 20px; text-align: left;">
             <label style="font-weight: bold; margin-bottom: 5px; display: block;">Game Mode</label>
@@ -261,6 +262,7 @@
         <div style="display: flex; gap: 10px;">
             <button id="cancelTodBtn" class="glass btn-secondary" style="flex: 1;">Cancel</button>
             <button id="startTodBtn" class="glass btn-primary" style="flex: 1;">Start Game</button>
+        </div>
         </div>
     </div>
 
@@ -359,6 +361,6 @@
         </div>
     </div>
 
-    <script src="script.js?v=usefullgames22"></script>
+    <script src="script.js?v=usefullgames23"></script>
 </body>
 </html>
