@@ -77,10 +77,42 @@ let currentSymbol = 'X';
 let myRole = ''; 
 let gameActive = false; 
 let myRoomCode = '';
+let roomHost = '';
 let playerName = ''; 
 let opponentName = ''; 
 let botDifficulty = 2; 
 
+
+
+const leaveRequestModal = document.getElementById('leaveRequestModal');
+const leaveRequestText = document.getElementById('leaveRequestText');
+const allowLeaveBtn = document.getElementById('allowLeaveBtn');
+const denyLeaveBtn = document.getElementById('denyLeaveBtn');
+let pendingLeaveType = '';
+let pendingLeavePlayer = '';
+
+if (allowLeaveBtn) {
+    allowLeaveBtn.addEventListener('click', () => {
+        socket.send(JSON.stringify({ action: "approve_leave", leave_type: pendingLeaveType, player: pendingLeavePlayer }));
+        leaveRequestModal.classList.add('hidden');
+    });
+}
+if (denyLeaveBtn) {
+    denyLeaveBtn.addEventListener('click', () => {
+        socket.send(JSON.stringify({ action: "deny_leave", player: pendingLeavePlayer }));
+        leaveRequestModal.classList.add('hidden');
+    });
+}
+
+function requestLeave(type) {
+    if (currentMode !== 'friend' || playerName === roomHost) {
+        if (type === 'room') leaveRoom();
+        else socket.send(JSON.stringify({action: "return_hub"}));
+    } else {
+        socket.send(JSON.stringify({ action: "request_leave", type: type, player: playerName }));
+        alert("Request sent to Host. Waiting for approval...");
+    }
+}
 
 // --- TRUTH OR DARE UI ---
 const launchToD = document.getElementById('launchToD');
@@ -117,6 +149,14 @@ const todRevealText = document.getElementById('todRevealText');
 const todResolutionArea = document.getElementById('todResolutionArea');
 const todDoneBtn = document.getElementById('todDoneBtn');
 const todForfeitBtn = document.getElementById('todForfeitBtn');
+
+// New truth elements
+const todTruthAnswerContainer = document.getElementById('todTruthAnswerContainer');
+const todTruthInput = document.getElementById('todTruthInput');
+const todSendTruthBtn = document.getElementById('todSendTruthBtn');
+const todTruthDisplayContainer = document.getElementById('todTruthDisplayContainer');
+const todTruthDisplayText = document.getElementById('todTruthDisplayText');
+
 
 // Update showScreen to hide todScreen
 
@@ -275,8 +315,11 @@ function leaveRoom() {
     showScreen(modeScreen); 
 }
 
-leaveHubBtn.addEventListener('click', () => { if (currentMode === 'friend') leaveRoom(); else showScreen(modeScreen); });
+leaveHubBtn.addEventListener('click', () => { if (currentMode === 'friend') requestLeave('room'); else showScreen(modeScreen); });
 leaveWaitingBtn.addEventListener('click', leaveRoom);
+
+backToHubBtn.addEventListener('click', () => requestLeave('hub')); 
+overlayHubBtn.addEventListener('click', () => requestLeave('hub'));
 
 launchTicTacToe.addEventListener('click', () => { 
     if (myRole === 'Host' || currentMode === 'bot') { 
@@ -777,7 +820,7 @@ function checkWin() {
 }
 
 function returnToHub() { currentMode === 'friend' ? socket.send(JSON.stringify({ action: "return_hub" })) : showScreen(hubScreen); }
-backToHubBtn.addEventListener('click', returnToHub); overlayHubBtn.addEventListener('click', returnToHub);
+
 function triggerRestart() { currentMode === 'friend' ? socket.send(JSON.stringify({ action: "restart" })) : (resetBoard(), statusText.innerText = "Rematch! Your Turn."); }
 restartBtn.addEventListener('click', triggerRestart); overlayRestartBtn.addEventListener('click', triggerRestart);
 
@@ -831,6 +874,7 @@ socket.onmessage = (event) => {
     }
     else if (data.type === "lobby_update") {
         showChat(); myRoomCode = data.room;
+        roomHost = data.host;
         waitingRoomCode.innerText = myRoomCode;
         waitingStatus.innerText = `Waiting for players... (${data.players.length}/${data.capacity})`;
         
@@ -844,7 +888,8 @@ socket.onmessage = (event) => {
     }
     else if (data.type === "hub_start") { 
         showChat(); myRoomCode = data.room; 
-        opponentName = data.host; 
+        opponentName = data.host;
+        roomHost = data.host; 
         
         if (playerName === data.host) { 
             hubRoleBanner.innerText = `Host: Pick a game for the lobby!`; 
@@ -876,6 +921,21 @@ socket.onmessage = (event) => {
         }
     }
     else if (data.type === "return_hub") { showScreen(hubScreen); }
+
+    else if (data.type === "leave_request") {
+        pendingLeaveType = data.leave_type;
+        pendingLeavePlayer = data.player;
+        leaveRequestText.innerText = `${data.player} wants to ${data.leave_type === 'hub' ? 'return to the Hub' : 'leave the room'}. Allow?`;
+        leaveRequestModal.classList.remove('hidden');
+    }
+    else if (data.type === "leave_approved") {
+        alert("Host approved your request to leave.");
+        leaveRoom();
+    }
+    else if (data.type === "leave_denied") {
+        alert("Host denied your request to leave.");
+    }
+
     else if (data.type === "dice_rolled") { animateDice(data.value, data.roller); }
     else if (data.type === "ludo_move") { 
         diceRolledValue = data.roll; 
@@ -951,6 +1011,7 @@ socket.onmessage = (event) => {
         else if (data.event === "fate_chosen") {
             const fate = data.fate;
             todRevealType.innerText = fate;
+            todDbBtn.innerText = "🎲 Random " + (fate === "TRUTH" ? "Truth" : "Dare");
             resetTodUI();
             if (playerName === currentAsker) {
                 todAskerArea.classList.remove('hidden');
@@ -966,17 +1027,28 @@ socket.onmessage = (event) => {
             todRevealType.innerText = data.fate;
             todRevealText.innerText = data.text;
             
-            if (playerName === currentVictim) {
+            if (playerName === currentAsker) {
                 todResolutionArea.classList.remove('hidden');
             }
+            if (playerName === currentVictim && data.fate === 'TRUTH') {
+                todTruthAnswerContainer.classList.remove('hidden');
+            }
+        }
+        else if (data.event === "truth_answer") {
+            todTruthAnswerContainer.classList.add('hidden');
+            todTruthDisplayContainer.classList.remove('hidden');
+            todTruthDisplayText.innerText = data.text;
+        }
+        else if (data.event === "forfeit") {
+            resetTodUI();
+            todTurnArea.classList.remove('hidden');
+            todStatusText.innerText = `${currentVictim} forfeited! Moving to next turn...`;
+            setTimeout(() => {
+                completeTurn();
+            }, 2500);
         }
         else if (data.event === "resolved") {
-            if (todPlayers.length <= 2) {
-                todTurnIndex++;
-                startTwoPlayerTurn();
-            } else {
-                resetToSpin();
-            }
+            completeTurn();
         }
     }
 };
@@ -1019,6 +1091,9 @@ function resetTodUI() {
     todCustomInputArea.classList.add('hidden');
     todRevealArea.classList.add('hidden');
     todResolutionArea.classList.add('hidden');
+    todTruthAnswerContainer.classList.add('hidden');
+    todTruthDisplayContainer.classList.add('hidden');
+    todTruthInput.value = "";
 }
 
 if (startTodBtn) {
@@ -1037,7 +1112,7 @@ if (startTodBtn) {
 
 if (leaveTodBtn) {
     leaveTodBtn.addEventListener('click', () => {
-        socket.send(JSON.stringify({action: "return_hub"}));
+        requestLeave('hub');
     });
 }
 
@@ -1114,8 +1189,8 @@ if (todDbBtn) {
     todDbBtn.addEventListener('click', () => {
         const fate = todRevealType.innerText;
         const text = fate === 'TRUTH' 
-            ? "What is the most embarrassing thing you've done in front of a crush? (Mock Database)" 
-            : "Do a crazy dance in the middle of the room for 30 seconds. (Mock Database)";
+            ? "What is the most embarrassing thing you've done in front of a crush?" 
+            : "Do a crazy dance in the middle of the room for 30 seconds.";
         socket.send(JSON.stringify({ action: "tod_event", event: "reveal", fate: fate, text: text }));
     });
 }
@@ -1145,6 +1220,25 @@ if (todDoneBtn) {
 
 if (todForfeitBtn) { 
     todForfeitBtn.addEventListener('click', () => {
-        socket.send(JSON.stringify({ action: "tod_event", event: "resolved" }));
+        socket.send(JSON.stringify({ action: "tod_event", event: "forfeit" }));
+    });
+}
+
+
+function completeTurn() {
+    if (todPlayers.length <= 2) {
+        todTurnIndex++;
+        startTwoPlayerTurn();
+    } else {
+        resetToSpin();
+    }
+}
+
+if (todSendTruthBtn) {
+    todSendTruthBtn.addEventListener('click', () => {
+        const ans = todTruthInput.value.trim();
+        if (ans) {
+            socket.send(JSON.stringify({ action: "tod_event", event: "truth_answer", text: ans }));
+        }
     });
 }

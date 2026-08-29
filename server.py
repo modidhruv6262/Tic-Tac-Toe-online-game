@@ -118,6 +118,41 @@ async def game_handler(websocket):
                                 "all_players": [{"name": pl["name"]} for pl in players]
                             }))
 
+elif action == "request_leave":
+                room_code = player_rooms.get(websocket)
+                if room_code in rooms:
+                    room = rooms[room_code]
+                    host_p = room["players"][0]
+                    await host_p["ws"].send(json.dumps({
+                        "type": "leave_request",
+                        "player": data.get("player"),
+                        "leave_type": data.get("type")
+                    }))
+                    
+            elif action == "approve_leave":
+                room_code = player_rooms.get(websocket)
+                if room_code in rooms:
+                    room = rooms[room_code]
+                    leave_type = data.get("leave_type")
+                    target_player = data.get("player")
+                    
+                    if leave_type == "hub":
+                        for p in room["players"]:
+                            await p["ws"].send(json.dumps({"type": "return_hub"}))
+                    elif leave_type == "room":
+                        for p in room["players"]:
+                            if p["name"] == target_player:
+                                await p["ws"].send(json.dumps({"type": "leave_approved"}))
+                                
+            elif action == "deny_leave":
+                room_code = player_rooms.get(websocket)
+                if room_code in rooms:
+                    room = rooms[room_code]
+                    target_player = data.get("player")
+                    for p in room["players"]:
+                        if p["name"] == target_player:
+                            await p["ws"].send(json.dumps({"type": "leave_denied"}))
+
             elif action == "return_hub":
                 room_code = player_rooms.get(websocket)
                 if room_code in rooms:
