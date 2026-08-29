@@ -931,6 +931,7 @@ socket.onmessage = (event) => {
             console.log('Received launch_game for tod from server!', data);
             todPlayers = data.all_players || [];
             todMode = data.mode;
+            todLanguage = data.language || "english";
             todIntensity = data.intensity;
             initTodGame();
         }
@@ -938,10 +939,12 @@ socket.onmessage = (event) => {
     else if (data.type === "return_hub") { showScreen(hubScreen); }
 
     else if (data.type === "leave_request") {
-        pendingLeaveType = data.leave_type;
-        pendingLeavePlayer = data.player;
-        leaveRequestText.innerText = `${data.player} is requesting to leave.`;
-        leaveRequestModal.classList.remove('hidden');
+        if (playerName === roomHost) {
+            pendingLeaveType = data.leave_type;
+            pendingLeavePlayer = data.player;
+            leaveRequestText.innerText = `${data.player} is requesting to leave.`;
+            leaveRequestModal.classList.remove('hidden');
+        }
     }
     else if (data.type === "leave_approved") {
         showAlert("Host approved your request to leave.");
@@ -1074,6 +1077,7 @@ let todPlayers = [];
 let todMode = "both";
 let todTurnIndex = 0;
 let todIntensity = 3;
+let todLanguage = "english";
 let currentAsker = "";
 let currentVictim = "";
 
@@ -1114,12 +1118,13 @@ function resetTodUI() {
 if (startTodBtn) {
     startTodBtn.addEventListener('click', () => {
         const mode = document.getElementById('todModeSelect').value;
+        const language = document.getElementById('todLanguageSelect').value;
         const intensity = todIntensitySlider.value;
-        console.log('Sending launch_game for tod with mode:', mode, 'intensity:', intensity);
         socket.send(JSON.stringify({ 
             action: "launch_game", 
             game: "tod", 
             mode: mode, 
+            language: language,
             intensity: intensity 
         }));
     });
@@ -1200,50 +1205,123 @@ if (todChooseDareBtn) {
     });
 }
 
-const TRUTH_PROMPTS = [
-    "What is the most embarrassing thing you've done in front of a crush?",
-    "What is a secret you've never told anyone in this room?",
-    "If you had to delete one app from your phone forever, what would it be?",
-    "Who was your first celebrity crush?",
-    "What's the weirdest thing you've ever eaten?",
-    "Have you ever lied to get out of hanging out with a friend?",
-    "What's the most childish thing you still do?",
-    "If you could swap lives with anyone in this room for a day, who would it be?",
-    "What is your biggest fear?",
-    "What's the worst text message you've accidentally sent to the wrong person?",
-    "What's your most embarrassing late-night purchase?",
-    "Have you ever practiced kissing in a mirror?",
-    "What is the longest you've gone without showering?",
-    "What is the most ridiculous thing you've cried over?",
-    "If someone went through your search history, what is the weirdest thing they'd find?"
-];
+const TRUTH_PROMPTS = {
+    "english": [
+        "What is the most embarrassing thing you've done in front of a crush?",
+        "What is a secret you've never told anyone in this room?",
+        "If you had to delete one app from your phone forever, what would it be?",
+        "Who was your first celebrity crush?",
+        "What's the weirdest thing you've ever eaten?",
+        "Have you ever lied to get out of hanging out with a friend?",
+        "What's the most childish thing you still do?",
+        "If you could swap lives with anyone in this room for a day, who would it be?",
+        "What is your biggest fear?",
+        "What's the worst text message you've accidentally sent to the wrong person?",
+        "What's your most embarrassing late-night purchase?",
+        "Have you ever practiced kissing in a mirror?",
+        "What is the longest you've gone without showering?",
+        "What is the most ridiculous thing you've cried over?",
+        "If someone went through your search history, what is the weirdest thing they'd find?"
+    ],
+    "hindi": [
+        "क्रश के सामने आपने सबसे शर्मनाक काम क्या किया है?",
+        "ऐसा कौन सा राज है जो आपने इस कमरे में किसी को नहीं बताया?",
+        "अगर आपको अपने फोन से हमेशा के लिए एक ऐप डिलीट करना हो, तो वो क्या होगा?",
+        "आपका पहला सेलिब्रिटी क्रश कौन था?",
+        "आपने अब तक की सबसे अजीब चीज़ क्या खाई है?",
+        "क्या आपने कभी किसी दोस्त के साथ बाहर जाने से बचने के लिए झूठ बोला है?",
+        "आप आज भी कौन सी सबसे बचकानी हरकत करते हैं?",
+        "अगर आप इस कमरे में किसी के साथ अपनी जिंदगी एक दिन के लिए बदल सकें, तो वह कौन होगा?",
+        "आपका सबसे बड़ा डर क्या है?",
+        "वो सबसे खराब मैसेज कौन सा है जो आपने गलती से किसी गलत इंसान को भेजा हो?",
+        "रात के समय आपकी सबसे शर्मनाक ऑनलाइन शॉपिंग कौन सी रही है?",
+        "क्या आपने कभी शीशे के सामने चूमने की प्रैक्टिस की है?",
+        "आप बिना नहाए सबसे ज्यादा कितने दिन रहे हैं?",
+        "सबसे बेतुकी किस बात पर आप रोये हैं?",
+        "अगर कोई आपकी सर्च हिस्ट्री देखे, तो उन्हें सबसे अजीब चीज़ क्या मिलेगी?"
+    ],
+    "gujarati": [
+        "ક્રશની સામે તમે સૌથી શરમજનક વસ્તુ શું કરી છે?",
+        "એવું કયું રહસ્ય છે જે તમે આ રૂમમાં કોઈને ક્યારેય કહ્યું નથી?",
+        "જો તમારે કાયમ માટે તમારા ફોનમાંથી એક એપ ડિલીટ કરવી હોય, તો તે કઈ હશે?",
+        "તમારો પહેલો સેલિબ્રિટી ક્રશ કોણ હતો?",
+        "તમે અત્યાર સુધીની સૌથી વિચિત્ર વસ્તુ કઈ ખાધી છે?",
+        "શું તમે ક્યારેય મિત્ર સાથે બહાર ન જવા માટે ખોટું બોલ્યા છો?",
+        "તમે આજે પણ સૌથી બાલિશ વસ્તુ કઈ કરો છો?",
+        "જો તમે આ રૂમમાં કોઈની સાથે એક દિવસ માટે જીવન બદલી શકો, તો તે કોણ હશે?",
+        "તમારો સૌથી મોટો ડર શું છે?",
+        "તમે ભૂલથી ખોટી વ્યક્તિને મોકલેલો સૌથી ખરાબ મેસેજ કયો છે?",
+        "રાત્રિના સમયે તમારી સૌથી શરમજનક ઓનલાઈન ખરીદી કઈ છે?",
+        "શું તમે ક્યારેય અરીસાની સામે ચુંબન કરવાની પ્રેક્ટિસ કરી છે?",
+        "તમે સ્નાન કર્યા વગર સૌથી લાંબો સમય કેટલો કાઢ્યો છે?",
+        "સૌથી વાહિયાત કઈ બાબત પર તમે રડ્યા છો?",
+        "જો કોઈ તમારી સર્ચ હિસ્ટ્રી જુએ, તો તેમને સૌથી વિચિત્ર વસ્તુ શું મળશે?"
+    ]
+};
 
-const DARE_PROMPTS = [
-    "Do a crazy dance in the middle of the room for 30 seconds.",
-    "Let another player text anyone from your phone and you can't say it was a dare.",
-    "Do 20 pushups right now.",
-    "Speak in a weird accent for the next 3 rounds.",
-    "Let the group look through your photo gallery for 1 minute.",
-    "Try to juggle 3 items of the group's choosing.",
-    "Sing the chorus of your favorite song loudly.",
-    "Hold a plank for a full minute.",
-    "Let someone in the room draw on your face with a pen.",
-    "Eat a spoonful of a condiment chosen by the group (e.g., ketchup, mustard).",
-    "Show the last 5 people you texted and what the messages say.",
-    "Act like a chicken until your next turn.",
-    "Call a random contact and sing 'Happy Birthday' to them.",
-    "Keep your eyes closed until your next turn.",
-    "Let the person to your left style your hair however they want."
-];
+const DARE_PROMPTS = {
+    "english": [
+        "Do a crazy dance in the middle of the room for 30 seconds.",
+        "Let another player text anyone from your phone and you can't say it was a dare.",
+        "Do 20 pushups right now.",
+        "Speak in a weird accent for the next 3 rounds.",
+        "Let the group look through your photo gallery for 1 minute.",
+        "Try to juggle 3 items of the group's choosing.",
+        "Sing the chorus of your favorite song loudly.",
+        "Hold a plank for a full minute.",
+        "Let someone in the room draw on your face with a pen.",
+        "Eat a spoonful of a condiment chosen by the group.",
+        "Show the last 5 people you texted and what the messages say.",
+        "Act like a chicken until your next turn.",
+        "Call a random contact and sing 'Happy Birthday' to them.",
+        "Keep your eyes closed until your next turn.",
+        "Let the person to your left style your hair however they want."
+    ],
+    "hindi": [
+        "30 सेकंड के लिए कमरे के बीच में एक पागलों वाला डांस करो।",
+        "किसी अन्य खिलाड़ी को अपने फोन से किसी को भी मैसेज करने दो और आप यह नहीं बता सकते कि यह डेयर था।",
+        "अभी तुरंत 20 पुशअप्स लगाओ।",
+        "अगले 3 राउंड तक एक अजीब एक्सेंट (लहजे) में बात करो।",
+        "ग्रुप को 1 मिनट तक अपनी फोटो गैलरी देखने दो।",
+        "ग्रुप की पसंद की 3 चीजों से जगलिंग करने की कोशिश करो।",
+        "अपने पसंदीदा गाने का कोरस जोर से गाओ।",
+        "पूरे एक मिनट तक प्लैंक (Plank) करो।",
+        "कमरे में मौजूद किसी व्यक्ति को अपने चेहरे पर पेन से कुछ बनाने दो।",
+        "ग्रुप की पसंद का कोई भी सॉस या चटनी एक चम्मच खाओ।",
+        "उन आखिरी 5 लोगों को दिखाओ जिन्हें आपने मैसेज किया था और उसमें क्या लिखा था।",
+        "अपनी अगली बारी तक मुर्गे की तरह हरकतें करो।",
+        "किसी भी रैंडम कांटेक्ट को कॉल करो और उन्हें 'Happy Birthday' गाकर सुनाओ।",
+        "अपनी अगली बारी तक अपनी आँखें बंद रखो।",
+        "अपनी बाईं ओर बैठे व्यक्ति को अपने बाल जैसे चाहें वैसे संवारने दो।"
+    ],
+    "gujarati": [
+        "30 સેકન્ડ માટે રૂમની મધ્યમાં પાગલ જેવો ડાન્સ કરો.",
+        "કોઈ અન્ય ખેલાડીને તમારા ફોનમાંથી કોઈને પણ મેસેજ કરવા દો અને તમે કહી શકશો નહીં કે આ એક ડેર હતો.",
+        "અત્યારે જ 20 પુશઅપ્સ કરો.",
+        "આગામી 3 રાઉન્ડ માટે વિચિત્ર ઉચ્ચાર સાથે વાત કરો.",
+        "ગ્રુપને 1 મિનિટ માટે તમારી ફોટો ગેલેરી જોવા દો.",
+        "ગ્રુપની પસંદગીની 3 વસ્તુઓ સાથે જગલિંગ કરવાનો પ્રયાસ કરો.",
+        "તમારા મનપસંદ ગીતનું કોરસ મોટેથી ગાઓ.",
+        "એક આખી મિનિટ માટે પ્લેન્ક (Plank) કરો.",
+        "રૂમમાં રહેલ કોઈપણ વ્યક્તિને તમારા ચહેરા પર પેન વડે કશુંક દોરવા દો.",
+        "ગ્રુપની પસંદગીની કોઈપણ ચટણીની એક ચમચી ખાઓ.",
+        "છેલ્લા 5 લોકોને બતાવો જેમને તમે મેસેજ કર્યો હતો અને મેસેજ શું છે.",
+        "તમારા આગલા વારા સુધી મરઘીની જેમ વર્તન કરો.",
+        "કોઈપણ રેન્ડમ કોન્ટેક્ટને કૉલ કરો અને તેમને 'Happy Birthday' ગાઈ સંભળાવો.",
+        "તમારા આગલા વારા સુધી તમારી આંખો બંધ રાખો.",
+        "તમારી ડાબી બાજુની વ્યક્તિને તમારા વાળ ગમે તેમ સેટ કરવા દો."
+    ]
+};
 
 if (todDbBtn) {
     todDbBtn.addEventListener('click', () => {
         const fate = todRevealType.innerText;
         let text = "";
+        const lang = todLanguage || "english";
         if (fate === 'TRUTH') {
-            text = TRUTH_PROMPTS[Math.floor(Math.random() * TRUTH_PROMPTS.length)];
+            text = TRUTH_PROMPTS[lang][Math.floor(Math.random() * TRUTH_PROMPTS[lang].length)];
         } else {
-            text = DARE_PROMPTS[Math.floor(Math.random() * DARE_PROMPTS.length)];
+            text = DARE_PROMPTS[lang][Math.floor(Math.random() * DARE_PROMPTS[lang].length)];
         }
         socket.send(JSON.stringify({ action: "tod_event", event: "reveal", fate: fate, text: text }));
     });

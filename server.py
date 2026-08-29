@@ -115,6 +115,7 @@ async def game_handler(websocket):
                                 "game": "tod",
                                 "mode": data.get("mode", "both"),
                                 "intensity": data.get("intensity", 3),
+                                "language": data.get("language", "english"),
                                 "all_players": [{"name": pl["name"]} for pl in players]
                             }))
 
@@ -122,12 +123,12 @@ async def game_handler(websocket):
                 room_code = player_rooms.get(websocket)
                 if room_code in rooms:
                     room = rooms[room_code]
-                    host_p = room["players"][0]
-                    await host_p["ws"].send(json.dumps({
-                        "type": "leave_request",
-                        "player": data.get("player"),
-                        "leave_type": data.get("type")
-                    }))
+                    for p in room["players"]:
+                        await p["ws"].send(json.dumps({
+                            "type": "leave_request",
+                            "player": data.get("player"),
+                            "leave_type": data.get("type")
+                        }))
                     
             elif action == "approve_leave":
                 room_code = player_rooms.get(websocket)
