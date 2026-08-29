@@ -110,8 +110,23 @@ function requestLeave(type) {
         else socket.send(JSON.stringify({action: "return_hub"}));
     } else {
         socket.send(JSON.stringify({ action: "request_leave", type: type, player: playerName }));
-        alert("Request sent to Host. Waiting for approval...");
+        showAlert("Request sent to Host. Waiting for approval...");
     }
+}
+
+const alertModal = document.getElementById('alertModal');
+const alertModalText = document.getElementById('alertModalText');
+const alertModalCloseBtn = document.getElementById('alertModalCloseBtn');
+
+if (alertModalCloseBtn) {
+    alertModalCloseBtn.addEventListener('click', () => {
+        alertModal.classList.add('hidden');
+    });
+}
+
+function showAlert(msg) {
+    alertModalText.innerText = msg;
+    alertModal.classList.remove('hidden');
 }
 
 // --- TRUTH OR DARE UI ---
@@ -925,15 +940,15 @@ socket.onmessage = (event) => {
     else if (data.type === "leave_request") {
         pendingLeaveType = data.leave_type;
         pendingLeavePlayer = data.player;
-        leaveRequestText.innerText = `${data.player} wants to ${data.leave_type === 'hub' ? 'return to the Hub' : 'leave the room'}. Allow?`;
+        leaveRequestText.innerText = `${data.player} is requesting to leave.`;
         leaveRequestModal.classList.remove('hidden');
     }
     else if (data.type === "leave_approved") {
-        alert("Host approved your request to leave.");
+        showAlert("Host approved your request to leave.");
         leaveRoom();
     }
     else if (data.type === "leave_denied") {
-        alert("Host denied your request to leave.");
+        showAlert("Host has canceled the request.");
     }
 
     else if (data.type === "dice_rolled") { animateDice(data.value, data.roller); }
@@ -966,7 +981,7 @@ socket.onmessage = (event) => {
     else if (data.type === "player_left") { 
         statusText.innerText = `${data.name} left the room.`; 
         gameActive = false; 
-        hideChat(); chatMessages.innerHTML = ''; showScreen(modeScreen); alert(`${data.name} disconnected.`); 
+        hideChat(); chatMessages.innerHTML = ''; showScreen(modeScreen); showAlert(`${data.name} disconnected.`); 
     }
     else if (data.type === "move" && activeGame === 'tictactoe') { 
         cells[data.index].innerText = data.symbol; applyColor(cells[data.index], data.symbol); currentSymbol = data.symbol === 'X' ? 'O' : 'X'; 

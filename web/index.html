@@ -244,11 +244,17 @@
         <h2 style="margin-bottom: 20px;">Leave Request</h2>
         <p id="leaveRequestText" style="margin-bottom: 20px; font-size: 1.2rem;"></p>
         <div style="display: flex; gap: 10px;">
-            <button id="denyLeaveBtn" class="glass btn-secondary" style="flex: 1;">Deny</button>
-            <button id="allowLeaveBtn" class="glass btn-primary" style="flex: 1; background: var(--accent-red);">Allow</button>
+            <button id="allowLeaveBtn" class="glass btn-primary" style="flex: 1; background: var(--accent-red);">Leave</button>
+            <button id="denyLeaveBtn" class="glass btn-secondary" style="flex: 1;">Cancel</button>
         </div>
     </div>
 
+    <!-- GENERIC ALERT MODAL -->
+    <div id="alertModal" class="glass-card glass hidden" style="position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 30000; width: 85vw; max-width: 350px; text-align: center;">
+        <h3 id="alertModalText" style="margin-bottom: 20px; font-weight: 600;">Alert</h3>
+        <button id="alertModalCloseBtn" class="glass btn-primary" style="width: 100%;">OK</button>
+    </div>
+    
     <!-- TRUTH OR DARE SETTINGS SCREEN -->
     <div id="todSettingsScreen" class="hidden" style="display: flex; flex-direction: column; justify-content: center; align-items: center; min-height: 80vh;">
         <div class="glass-card glass" style="width: 90vw; max-width: 400px; text-align: center;">
@@ -388,6 +394,6 @@
         </div>
     </div>
 
-    <script src="script.js?v=usefullgames28"></script>
+    <script src="script.js?v=usefullgames29"></script>
 </body>
 </html>
