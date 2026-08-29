@@ -1185,12 +1185,51 @@ if (todChooseDareBtn) {
     });
 }
 
+const TRUTH_PROMPTS = [
+    "What is the most embarrassing thing you've done in front of a crush?",
+    "What is a secret you've never told anyone in this room?",
+    "If you had to delete one app from your phone forever, what would it be?",
+    "Who was your first celebrity crush?",
+    "What's the weirdest thing you've ever eaten?",
+    "Have you ever lied to get out of hanging out with a friend?",
+    "What's the most childish thing you still do?",
+    "If you could swap lives with anyone in this room for a day, who would it be?",
+    "What is your biggest fear?",
+    "What's the worst text message you've accidentally sent to the wrong person?",
+    "What's your most embarrassing late-night purchase?",
+    "Have you ever practiced kissing in a mirror?",
+    "What is the longest you've gone without showering?",
+    "What is the most ridiculous thing you've cried over?",
+    "If someone went through your search history, what is the weirdest thing they'd find?"
+];
+
+const DARE_PROMPTS = [
+    "Do a crazy dance in the middle of the room for 30 seconds.",
+    "Let another player text anyone from your phone and you can't say it was a dare.",
+    "Do 20 pushups right now.",
+    "Speak in a weird accent for the next 3 rounds.",
+    "Let the group look through your photo gallery for 1 minute.",
+    "Try to juggle 3 items of the group's choosing.",
+    "Sing the chorus of your favorite song loudly.",
+    "Hold a plank for a full minute.",
+    "Let someone in the room draw on your face with a pen.",
+    "Eat a spoonful of a condiment chosen by the group (e.g., ketchup, mustard).",
+    "Show the last 5 people you texted and what the messages say.",
+    "Act like a chicken until your next turn.",
+    "Call a random contact and sing 'Happy Birthday' to them.",
+    "Keep your eyes closed until your next turn.",
+    "Let the person to your left style your hair however they want."
+];
+
 if (todDbBtn) {
     todDbBtn.addEventListener('click', () => {
         const fate = todRevealType.innerText;
-        const text = fate === 'TRUTH' 
-            ? "What is the most embarrassing thing you've done in front of a crush?" 
-            : "Do a crazy dance in the middle of the room for 30 seconds.";
+        let text = "";
+        if (fate === 'TRUTH') {
+            text = TRUTH_PROMPTS[Math.floor(Math.random() * TRUTH_PROMPTS.length)];
+        } else {
+            text = DARE_PROMPTS[Math.floor(Math.random() * DARE_PROMPTS.length)];
+        }
         socket.send(JSON.stringify({ action: "tod_event", event: "reveal", fate: fate, text: text }));
     });
 }
