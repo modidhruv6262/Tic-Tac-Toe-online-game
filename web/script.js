@@ -208,6 +208,7 @@ vsBotBtn.addEventListener('click', () => {
     difficultyContainer.classList.remove('hidden'); 
     launchTicTacToe.classList.remove('locked-game'); 
     launchLudo.classList.remove('locked-game'); 
+    if (launchToD) launchToD.classList.remove('locked-game'); 
     showScreen(hubScreen); 
 });
 
@@ -848,10 +849,12 @@ socket.onmessage = (event) => {
             hubRoleBanner.innerText = `Host: Pick a game for the lobby!`; 
             launchTicTacToe.classList.remove('locked-game'); 
             launchLudo.classList.remove('locked-game'); 
+            if (launchToD) launchToD.classList.remove('locked-game'); 
         } else { 
             hubRoleBanner.innerText = `Waiting for Host (${data.host}) to pick a game...`; 
             launchTicTacToe.classList.add('locked-game'); 
             launchLudo.classList.add('locked-game'); 
+            if (launchToD) launchToD.classList.add('locked-game'); 
         } 
         hubRoomDisplay.innerText = `Room Code: ${myRoomCode}`; 
         showScreen(hubScreen); 
@@ -973,6 +976,8 @@ let currentVictim = "";
 
 if (launchToD) {
     launchToD.addEventListener('click', () => {
+        if (myRole !== 'Host' && currentMode !== 'bot') return; // Prevent non-hosts
+        if (launchToD.classList.contains('locked-game')) return; // Extra safety
         todSettingsModal.classList.remove('hidden');
     });
 }

@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Private Arcade Hub</title>
-    <link rel="stylesheet" href="style.css?v=usefullgames20">
+    <link rel="stylesheet" href="style.css?v=usefullgames22">
 </head>
 <body>
     <!-- ANIMATED LIQUID BACKGROUND -->
@@ -220,6 +220,21 @@
             </div>
 
             
+    <!-- Ludo Board -->
+            <div id="ludoWrapper" class="hidden">
+                <div class="ludo-dashboard glass-card glass">
+                    <div class="dice-block">
+                        <div id="ludoDice" class="dice-cube"></div>
+                        <button id="rollDiceBtn" class="glass btn-primary">Roll Dice</button>
+                    </div>
+                </div>
+                <div id="ludoBoard" class="ludo-board">
+                    <!-- JS will dynamically draw the grid here -->
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- TRUTH OR DARE SETTINGS MODAL -->
     <div id="todSettingsModal" class="glass-card glass hidden" style="position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 10000; width: 90vw; max-width: 400px; text-align: center;">
         <h2 style="margin-bottom: 20px;">Truth or Dare Settings</h2>
@@ -304,20 +319,7 @@
         </div>
     </div>
 
-<!-- Ludo Board -->
-            <div id="ludoWrapper" class="hidden">
-                <div class="ludo-dashboard glass-card glass">
-                    <div class="dice-block">
-                        <div id="ludoDice" class="dice-cube"></div>
-                        <button id="rollDiceBtn" class="glass btn-primary">Roll Dice</button>
-                    </div>
-                </div>
-                <div id="ludoBoard" class="ludo-board">
-                    <!-- JS will dynamically draw the grid here -->
-                </div>
-            </div>
-        </div>
-    </div>
+
 
     <!-- FLOATING CHAT BUTTON -->
     <button id="chatToggleBtn" class="glass btn-primary hidden" style="position: fixed; bottom: 20px; right: 20px; z-index: 9999; width: 60px; height: 60px; border-radius: 50%; font-size: 1.5rem; padding: 0; display: flex; align-items: center; justify-content: center; box-shadow: 0 10px 30px rgba(0,0,0,0.5); cursor: pointer;">
@@ -357,6 +359,6 @@
         </div>
     </div>
 
-    <script src="script.js?v=usefullgames21"></script>
+    <script src="script.js?v=usefullgames22"></script>
 </body>
 </html>
