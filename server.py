@@ -118,7 +118,7 @@ async def game_handler(websocket):
                                 "all_players": [{"name": pl["name"]} for pl in players]
                             }))
 
-elif action == "request_leave":
+            elif action == "request_leave":
                 room_code = player_rooms.get(websocket)
                 if room_code in rooms:
                     room = rooms[room_code]
