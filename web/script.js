@@ -931,11 +931,19 @@ socket.onmessage = (event) => {
                 setTimeout(() => {
                     resetTodUI();
                     todTurnArea.classList.remove('hidden');
-                    if (myName === currentVictim) {
-                        todStatusText.innerText = `You were chosen! What is your fate?`;
-                        todFateArea.classList.remove('hidden');
+                    if (playerName === currentVictim) {
+                        if (todMode === 'truth') {
+                            socket.send(JSON.stringify({ action: "tod_event", event: "fate_chosen", fate: "TRUTH" }));
+                        } else if (todMode === 'dare') {
+                            socket.send(JSON.stringify({ action: "tod_event", event: "fate_chosen", fate: "DARE" }));
+                        } else {
+                            todStatusText.innerText = `You were chosen! What is your fate?`;
+                            todFateArea.classList.remove('hidden');
+                        }
                     } else {
-                        todStatusText.innerText = `${currentVictim} is choosing their fate...`;
+                        if (todMode === 'both') {
+                            todStatusText.innerText = `${currentVictim} is choosing their fate...`;
+                        }
                     }
                 }, 1500);
             }, 3000);
@@ -944,7 +952,7 @@ socket.onmessage = (event) => {
             const fate = data.fate;
             todRevealType.innerText = fate;
             resetTodUI();
-            if (myName === currentAsker) {
+            if (playerName === currentAsker) {
                 todAskerArea.classList.remove('hidden');
                 todAskerTitle.innerText = `${currentVictim} chose ${fate}. Pick a prompt!`;
             } else {
@@ -958,12 +966,17 @@ socket.onmessage = (event) => {
             todRevealType.innerText = data.fate;
             todRevealText.innerText = data.text;
             
-            if (myName === currentVictim) {
+            if (playerName === currentVictim) {
                 todResolutionArea.classList.remove('hidden');
             }
         }
         else if (data.event === "resolved") {
-            resetToSpin();
+            if (todPlayers.length <= 2) {
+                todTurnIndex++;
+                startTwoPlayerTurn();
+            } else {
+                resetToSpin();
+            }
         }
     }
 };
@@ -972,6 +985,7 @@ socket.onmessage = (event) => {
 // --- TRUTH OR DARE LOGIC (MULTIPLAYER) ---
 let todPlayers = [];
 let todMode = "both";
+let todTurnIndex = 0;
 let todIntensity = 3;
 let currentAsker = "";
 let currentVictim = "";
@@ -1029,7 +1043,34 @@ if (leaveTodBtn) {
 
 function initTodGame() {
     showScreen(todScreen);
-    resetToSpin();
+    todTurnIndex = 0;
+    if (todPlayers.length <= 2) {
+        startTwoPlayerTurn();
+    } else {
+        resetToSpin();
+    }
+}
+
+function startTwoPlayerTurn() {
+    resetTodUI();
+    currentAsker = todPlayers[todTurnIndex % todPlayers.length].name;
+    currentVictim = todPlayers[(todTurnIndex + 1) % todPlayers.length].name;
+    
+    todTurnArea.classList.remove('hidden');
+    if (playerName === currentVictim) {
+        if (todMode === 'truth') {
+            socket.send(JSON.stringify({ action: "tod_event", event: "fate_chosen", fate: "TRUTH" }));
+        } else if (todMode === 'dare') {
+            socket.send(JSON.stringify({ action: "tod_event", event: "fate_chosen", fate: "DARE" }));
+        } else {
+            todStatusText.innerText = `It's your turn! What is your fate?`;
+            todFateArea.classList.remove('hidden');
+        }
+    } else {
+        if (todMode === 'both') {
+            todStatusText.innerText = `Waiting for ${currentVictim} to pick their fate...`;
+        }
+    }
 }
 
 function resetToSpin() {
@@ -1043,14 +1084,14 @@ function resetToSpin() {
 
 if (todSpinBtn) {
     todSpinBtn.addEventListener('click', () => {
-        let victims = todPlayers.filter(p => p.name !== myName);
+        let victims = todPlayers.filter(p => p.name !== playerName);
         if (victims.length === 0) victims = todPlayers; // Fallback if playing solo
         let randomVictim = victims[Math.floor(Math.random() * victims.length)].name;
         
         socket.send(JSON.stringify({
             action: "tod_event",
             event: "spin",
-            asker: myName,
+            asker: playerName,
             victim: randomVictim,
             deg: Math.floor(Math.random() * 360) + 1440
         }));
