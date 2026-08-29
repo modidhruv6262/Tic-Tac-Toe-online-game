@@ -868,6 +868,7 @@ socket.onmessage = (event) => {
             myLudoColor = data.color;
             runRoulette(data.all_players.map(p=>p.name), "Player", data.color.toUpperCase(), data);
         } else if (data.game === 'tod') {
+            console.log('Received launch_game for tod from server!', data);
             todPlayers = data.all_players || [];
             todMode = data.mode;
             todIntensity = data.intensity;
@@ -1010,6 +1011,7 @@ if (startTodBtn) {
     startTodBtn.addEventListener('click', () => {
         const mode = document.getElementById('todModeSelect').value;
         const intensity = todIntensitySlider.value;
+        console.log('Sending launch_game for tod with mode:', mode, 'intensity:', intensity);
         socket.send(JSON.stringify({ 
             action: "launch_game", 
             game: "tod", 
