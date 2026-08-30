@@ -112,7 +112,8 @@ async def game_handler(websocket):
                         for p in players:
                             await p["ws"].send(json.dumps({
                                 "type": "launch_game",
-                                "game": "dng"
+                                "game": "dng",
+                                "all_players": [{"name": pl["name"]} for pl in players]
                             }))
                     elif game == "tod":
                         for p in players:
@@ -203,7 +204,7 @@ async def game_handler(websocket):
                     for p in rooms[room_code]["players"]:
                         await p["ws"].send(json.dumps({"type": "chat", "sender": sender_name, "message": data.get("message")}))
 
-            elif action == "tod_event":
+            elif action == "tod_event" or action == "dng_event":
                 room_code = player_rooms.get(websocket)
                 if room_code in rooms:
                     for p in rooms[room_code]["players"]:
