@@ -825,3 +825,21 @@ button:active {
         height: 50px !important;
     }
 }
+
+/* ========================================================= */
+/* --- DRAW & GUESS ---                                      */
+/* ========================================================= */
+#dngCanvas {
+    background-color: #fff !important; /* Force white for drawing */
+    cursor: crosshair;
+}
+
+#dngChatBox p {
+    margin: 2px 0;
+    line-height: 1.3;
+}
+#dngChatBox .sys-msg {
+    color: var(--accent-green);
+    font-weight: bold;
+    font-style: italic;
+}

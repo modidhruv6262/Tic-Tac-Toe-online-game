@@ -108,6 +108,12 @@ async def game_handler(websocket):
                                 "color": colors[i],
                                 "all_players": [{"name": pl["name"], "color": colors[idx]} for idx, pl in enumerate(players)]
                             }))
+                    elif game == "dng":
+                        for p in players:
+                            await p["ws"].send(json.dumps({
+                                "type": "launch_game",
+                                "game": "dng"
+                            }))
                     elif game == "tod":
                         for p in players:
                             await p["ws"].send(json.dumps({
@@ -179,6 +185,13 @@ async def game_handler(websocket):
                         if p["ws"] != websocket: # Don't bounce back to the sender
                             await p["ws"].send(json.dumps({"type": "ludo_move", "roller": data.get("roller"), "token": data.get("token"), "roll": data.get("roll")}))
 
+            elif action == "dng_draw" or action == "dng_clear":
+                room_code = player_rooms.get(websocket)
+                if room_code in rooms:
+                    room = rooms[room_code]
+                    for p in room["players"]:
+                        if p["ws"] != websocket:
+                            await p["ws"].send(message)
             elif action == "chat":
                 room_code = player_rooms.get(websocket)
                 if room_code in rooms:

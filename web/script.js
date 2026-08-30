@@ -47,6 +47,7 @@ const statusText = document.getElementById('statusText');
 
 const tictactoeBoard = document.getElementById('tictactoeBoard');
 const ludoWrapper = document.getElementById('ludoWrapper');
+/* LUDO COMMENTED OUT
 const ludoBoard = document.getElementById('ludoBoard');
 const ludoDice = document.getElementById('ludoDice');
 const rollDiceBtn = document.getElementById('rollDiceBtn');
@@ -113,6 +114,8 @@ function requestLeave(type) {
         showAlert("Request sent to Host. Waiting for approval...");
     }
 }
+
+*/
 
 const alertModal = document.getElementById('alertModal');
 const alertModalText = document.getElementById('alertModalText');
@@ -346,6 +349,7 @@ launchTicTacToe.addEventListener('click', () => {
     } 
 });
 
+/* LUDO COMMENTED OUT
 launchLudo.addEventListener('click', () => { 
     if (myRole === 'Host' || currentMode === 'bot') { 
         if (currentMode === 'friend') {
@@ -355,6 +359,7 @@ launchLudo.addEventListener('click', () => {
         }
     } 
 });
+*/
 
 function startGameUI(gameType) {
     activeGame = gameType; 
@@ -927,6 +932,11 @@ socket.onmessage = (event) => {
         } else if (data.game === 'ludo') {
             myLudoColor = data.color;
             runRoulette(data.all_players.map(p=>p.name), "Player", data.color.toUpperCase(), data);
+        } else if (data.game === 'dng') {
+            console.log('Received launch_game for dng from server!');
+            // Determine role (for now just randomly assign host to draw to test)
+            const role = (playerName === roomHost) ? "drawer" : "guesser";
+            initDnGGame(role);
         } else if (data.game === 'tod') {
             console.log('Received launch_game for tod from server!', data);
             todPlayers = data.all_players || [];
@@ -954,6 +964,13 @@ socket.onmessage = (event) => {
         showAlert("Host has canceled the request.");
     }
 
+    else if (data.type === "dng_draw") { 
+        drawLineLocally(data.startX, data.startY, data.endX, data.endY, data.color, data.size); 
+    }
+    else if (data.type === "dng_clear") {
+        dngCtx.fillStyle = "#ffffff";
+        dngCtx.fillRect(0, 0, dngCanvas.width, dngCanvas.height);
+    }
     else if (data.type === "dice_rolled") { animateDice(data.value, data.roller); }
     else if (data.type === "ludo_move") { 
         diceRolledValue = data.roll; 
@@ -978,7 +995,7 @@ socket.onmessage = (event) => {
             resetBoard(); 
             if (myRole === 'Spectator') statusText.innerText = "Spectating Match...";
             else statusText.innerText = myRole === 'Player 1' ? "Rematch! Your Turn." : "Waiting for Opponent...";
-        } else if(activeGame === 'ludo') { initLudoGame(); }
+        } /* else if(activeGame === 'ludo') { initLudoGame(); } */
     }
     else if (data.type === "error") { lobbyMessage.innerText = data.message; }
     else if (data.type === "player_left") { 
@@ -1371,6 +1388,134 @@ if (todSendTruthBtn) {
         const ans = todTruthInput.value.trim();
         if (ans) {
             socket.send(JSON.stringify({ action: "tod_event", event: "truth_answer", text: ans }));
+        }
+    });
+}
+
+// ==========================================
+// --- DRAW & GUESS (SKRIBBL CLONE) LOGIC ---
+// ==========================================
+const launchDnG = document.getElementById('launchDnG');
+const dngScreen = document.getElementById('dngScreen');
+const leaveDngBtn = document.getElementById('leaveDngBtn');
+const dngCanvas = document.getElementById('dngCanvas');
+const dngCtx = dngCanvas.getContext('2d');
+const dngColorPicker = document.getElementById('dngColorPicker');
+const dngSizePicker = document.getElementById('dngSizePicker');
+const dngClearBtn = document.getElementById('dngClearBtn');
+const dngToolbar = document.getElementById('dngToolbar');
+const dngGuessInput = document.getElementById('dngGuessInput');
+const dngGuessBtn = document.getElementById('dngGuessBtn');
+const dngChatBox = document.getElementById('dngChatBox');
+
+let isDrawing = false;
+let dngMyRole = "guesser"; // "drawer" or "guesser"
+let dngLastPos = {x: 0, y: 0};
+
+if (launchDnG) {
+    launchDnG.addEventListener('click', () => {
+        if (myRole === 'Host' || currentMode === 'bot') { 
+            if (currentMode === 'friend') {
+                socket.send(JSON.stringify({ action: "launch_game", game: "dng" }));
+            } else {
+                initDnGGame("drawer");
+            }
+        }
+    });
+}
+
+if (leaveDngBtn) {
+    leaveDngBtn.addEventListener('click', () => {
+        requestLeave('hub');
+    });
+}
+
+function initDnGGame(role) {
+    activeGame = 'dng';
+    dngMyRole = role;
+    showScreen(dngScreen);
+    
+    // Clear canvas
+    dngCtx.fillStyle = "#ffffff";
+    dngCtx.fillRect(0, 0, dngCanvas.width, dngCanvas.height);
+    
+    if (dngMyRole === 'drawer') {
+        dngToolbar.classList.remove('hidden');
+    } else {
+        dngToolbar.classList.add('hidden');
+    }
+}
+
+// Canvas Drawing Mechanics
+function getCanvasPos(e) {
+    const rect = dngCanvas.getBoundingClientRect();
+    const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+    const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+    return {
+        x: (clientX - rect.left) * (dngCanvas.width / rect.width),
+        y: (clientY - rect.top) * (dngCanvas.height / rect.height)
+    };
+}
+
+function startDrawing(e) {
+    if (dngMyRole !== 'drawer') return;
+    isDrawing = true;
+    dngLastPos = getCanvasPos(e);
+}
+
+function draw(e) {
+    if (!isDrawing || dngMyRole !== 'drawer') return;
+    e.preventDefault();
+    const pos = getCanvasPos(e);
+    
+    const color = dngColorPicker.value;
+    const size = dngSizePicker.value;
+    
+    drawLineLocally(dngLastPos.x, dngLastPos.y, pos.x, pos.y, color, size);
+    
+    if (currentMode === 'friend') {
+        socket.send(JSON.stringify({
+            action: "dng_draw",
+            startX: dngLastPos.x, startY: dngLastPos.y,
+            endX: pos.x, endY: pos.y,
+            color: color, size: size
+        }));
+    }
+    
+    dngLastPos = pos;
+}
+
+function stopDrawing() {
+    isDrawing = false;
+}
+
+function drawLineLocally(x1, y1, x2, y2, color, size) {
+    dngCtx.beginPath();
+    dngCtx.moveTo(x1, y1);
+    dngCtx.lineTo(x2, y2);
+    dngCtx.strokeStyle = color;
+    dngCtx.lineWidth = size;
+    dngCtx.lineCap = 'round';
+    dngCtx.stroke();
+}
+
+// Event Listeners for Canvas
+dngCanvas.addEventListener('mousedown', startDrawing);
+dngCanvas.addEventListener('mousemove', draw);
+dngCanvas.addEventListener('mouseup', stopDrawing);
+dngCanvas.addEventListener('mouseout', stopDrawing);
+
+dngCanvas.addEventListener('touchstart', startDrawing, {passive: false});
+dngCanvas.addEventListener('touchmove', draw, {passive: false});
+dngCanvas.addEventListener('touchend', stopDrawing);
+
+if (dngClearBtn) {
+    dngClearBtn.addEventListener('click', () => {
+        if (dngMyRole !== 'drawer') return;
+        dngCtx.fillStyle = "#ffffff";
+        dngCtx.fillRect(0, 0, dngCanvas.width, dngCanvas.height);
+        if (currentMode === 'friend') {
+            socket.send(JSON.stringify({ action: "dng_clear" }));
         }
     });
 }

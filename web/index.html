@@ -179,14 +179,21 @@
                 <h3>Tic-Tac-Toe</h3>
             </div>
             
+            <!-- LUDO COMMENTED OUT 
             <div class="game-card glass" id="launchLudo">
                 <div class="game-icon">🎲</div>
                 <h3>Ludo</h3>
             </div>
+            -->
             
             <div class="game-card glass" id="launchToD">
                 <div class="game-icon">🎲😈</div>
                 <h3>Truth or Dare</h3>
+            </div>
+            
+            <div class="game-card glass" id="launchDnG">
+                <div class="game-icon">🎨</div>
+                <h3>Draw & Guess</h3>
             </div>
         </div>
         
@@ -403,6 +410,54 @@
         </div>
     </div>
 
-    <script src="script.js?v=usefullgames30"></script>
+    <script src="script.js?v=usefullgames31"></script>
+
+    <!-- DRAW & GUESS GAME SCREEN -->
+    <div id="dngScreen" class="glass-card glass hidden" style="width: 95vw; max-width: 900px; min-height: 500px; display: flex; flex-direction: column; justify-content: space-between;">
+        <div class="header" style="display: flex; justify-content: space-between; align-items: center; width: 100%; border-bottom: 1px solid rgba(255,255,255,0.2); padding-bottom: 10px; margin-bottom: 15px;">
+            <div id="dngTimer" style="font-weight: bold; font-size: 1.2rem; color: var(--accent-red);">⏱️ 60s</div>
+            <h2 id="dngWordDisplay" style="margin: 0; letter-spacing: 5px;">_ _ _ _ _</h2>
+            <div style="font-weight: bold; font-size: 1.2rem;">🎨</div>
+        </div>
+        
+        <div style="display: flex; flex: 1; gap: 15px; flex-wrap: wrap;">
+            <!-- Left: Leaderboard -->
+            <div class="glass-inset" style="flex: 1; min-width: 150px; padding: 10px; display: flex; flex-direction: column;">
+                <h4 style="margin-top: 0; border-bottom: 1px solid rgba(255,255,255,0.2); padding-bottom: 5px;">Players</h4>
+                <ul id="dngLeaderboard" style="list-style: none; padding: 0; margin: 0; flex: 1; overflow-y: auto;">
+                    <!-- JS injects players -->
+                </ul>
+            </div>
+            
+            <!-- Center: Canvas -->
+            <div style="flex: 3; min-width: 300px; display: flex; flex-direction: column; align-items: center; justify-content: center;">
+                <canvas id="dngCanvas" width="500" height="400" style="background: rgba(255,255,255,0.9); border-radius: 10px; cursor: crosshair; touch-action: none; max-width: 100%; box-shadow: inset 0 0 10px rgba(0,0,0,0.1);"></canvas>
+                
+                <!-- Toolbar (Only for drawer) -->
+                <div id="dngToolbar" class="hidden" style="display: flex; gap: 10px; margin-top: 15px; padding: 10px; background: rgba(0,0,0,0.2); border-radius: 15px; align-items: center;">
+                    <input type="color" id="dngColorPicker" value="#000000" style="border: none; border-radius: 5px; cursor: pointer; width: 40px; height: 30px;">
+                    <input type="range" id="dngSizePicker" min="1" max="20" value="3" style="width: 100px;">
+                    <button id="dngClearBtn" class="glass btn-danger" style="padding: 5px 15px; font-size: 0.9rem;">🗑️ Clear</button>
+                </div>
+            </div>
+            
+            <!-- Right: Chat / Guess Area -->
+            <div class="glass-inset" style="flex: 1; min-width: 200px; padding: 10px; display: flex; flex-direction: column;">
+                <h4 style="margin-top: 0; border-bottom: 1px solid rgba(255,255,255,0.2); padding-bottom: 5px;">Guesses</h4>
+                <div id="dngChatBox" style="flex: 1; overflow-y: auto; margin-bottom: 10px; font-size: 0.9rem; text-align: left; display: flex; flex-direction: column; gap: 5px;">
+                    <!-- Guesses appear here -->
+                </div>
+                <div style="display: flex; gap: 5px;">
+                    <input type="text" id="dngGuessInput" class="glass-input" placeholder="Type guess..." style="flex: 1; padding: 5px; font-size: 0.9rem;">
+                    <button id="dngGuessBtn" class="glass btn-primary" style="padding: 5px 10px; font-size: 0.9rem;">Send</button>
+                </div>
+            </div>
+        </div>
+        
+        <div style="display: flex; justify-content: center; margin-top: 15px; padding-top: 10px; border-top: 1px solid rgba(255,255,255,0.2);">
+            <button id="leaveDngBtn" class="glass btn-danger">Leave Game</button>
+        </div>
+    </div>
+
 </body>
 </html>
