@@ -47,7 +47,6 @@ const statusText = document.getElementById('statusText');
 
 const tictactoeBoard = document.getElementById('tictactoeBoard');
 const ludoWrapper = document.getElementById('ludoWrapper');
-/* LUDO COMMENTED OUT
 const ludoBoard = document.getElementById('ludoBoard');
 const ludoDice = document.getElementById('ludoDice');
 const rollDiceBtn = document.getElementById('rollDiceBtn');
@@ -114,8 +113,6 @@ function requestLeave(type) {
         showAlert("Request sent to Host. Waiting for approval...");
     }
 }
-
-*/
 
 const alertModal = document.getElementById('alertModal');
 const alertModalText = document.getElementById('alertModalText');
@@ -266,7 +263,7 @@ vsBotBtn.addEventListener('click', () => {
     hubRoomDisplay.classList.add('hidden'); 
     difficultyContainer.classList.remove('hidden'); 
     launchTicTacToe.classList.remove('locked-game'); 
-    launchLudo.classList.remove('locked-game'); 
+    if (launchLudo) launchLudo.classList.remove('locked-game'); 
     if (launchToD) launchToD.classList.remove('locked-game'); 
     showScreen(hubScreen); 
 });
@@ -350,6 +347,7 @@ launchTicTacToe.addEventListener('click', () => {
 });
 
 /* LUDO COMMENTED OUT
+/* LUDO COMMENTED OUT
 launchLudo.addEventListener('click', () => { 
     if (myRole === 'Host' || currentMode === 'bot') { 
         if (currentMode === 'friend') {
@@ -367,7 +365,7 @@ function startGameUI(gameType) {
     gameControls.classList.remove('hidden');
     
     tictactoeBoard.classList.add('hidden'); 
-    ludoWrapper.classList.add('hidden');
+    if (ludoWrapper) ludoWrapper.classList.add('hidden');
     
     if (activeGame === 'tictactoe') { 
         tictactoeBoard.classList.remove('hidden'); 
@@ -383,7 +381,7 @@ function startGameUI(gameType) {
             }
         }
     } else if (activeGame === 'ludo') { 
-        ludoWrapper.classList.remove('hidden'); 
+        if (ludoWrapper) ludoWrapper.classList.remove('hidden'); 
         initLudoGame(); 
     }
 }
@@ -452,7 +450,7 @@ function initLudoGame() {
     gameActive = true;
 }
 
-rollDiceBtn.addEventListener('click', () => {
+if (rollDiceBtn) rollDiceBtn.addEventListener('click', () => {
     if (activeGame !== 'ludo' || myLudoColor !== currentLudoTurn || hasRolled || !gameActive) return;
     const val = Math.floor(Math.random() * 6) + 1;
     
@@ -914,12 +912,12 @@ socket.onmessage = (event) => {
         if (playerName === data.host) { 
             hubRoleBanner.innerText = `Host: Pick a game for the lobby!`; 
             launchTicTacToe.classList.remove('locked-game'); 
-            launchLudo.classList.remove('locked-game'); 
+            if (launchLudo) launchLudo.classList.remove('locked-game'); 
             if (launchToD) launchToD.classList.remove('locked-game'); 
         } else { 
             hubRoleBanner.innerText = `Waiting for Host (${data.host}) to pick a game...`; 
             launchTicTacToe.classList.add('locked-game'); 
-            launchLudo.classList.add('locked-game'); 
+            if (launchLudo) launchLudo.classList.add('locked-game'); 
             if (launchToD) launchToD.classList.add('locked-game'); 
         } 
         hubRoomDisplay.innerText = `Room Code: ${myRoomCode}`; 
