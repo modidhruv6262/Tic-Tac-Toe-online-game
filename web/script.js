@@ -964,14 +964,14 @@ socket.onmessage = (event) => {
         showAlert("Host has canceled the request.");
     }
 
-    else if (data.type === "dng_draw") { 
+    else if (data.action === "dng_draw") { 
         drawLineLocally(data.startX, data.startY, data.endX, data.endY, data.color, data.size); 
     }
-    else if (data.type === "dng_clear") {
+    else if (data.action === "dng_clear") {
         dngCtx.fillStyle = "#ffffff";
         dngCtx.fillRect(0, 0, dngCanvas.width, dngCanvas.height);
     }
-    else if (data.type === "dng_event") {
+    else if (data.action === "dng_event") {
         handleDngEvent(data);
     }
     else if (data.type === "dice_rolled") { animateDice(data.value, data.roller); }
@@ -1489,9 +1489,9 @@ function startDngTurn() {
     
     if (currentMode === 'friend') {
         socket.send(JSON.stringify(packet));
+    } else {
+        handleDngEvent(packet);
     }
-    // Also handle locally
-    handleDngEvent(packet);
 }
 
 function endDngTurn() {
@@ -1503,8 +1503,9 @@ function endDngTurn() {
     };
     if (currentMode === 'friend') {
         socket.send(JSON.stringify(packet));
+    } else {
+        handleDngEvent(packet);
     }
-    handleDngEvent(packet);
 }
 
 function handleDngEvent(data) {
@@ -1607,12 +1608,12 @@ function submitDngGuess() {
         // Correct Guess
         const packet = { action: "dng_event", event: "correct_guess", player: playerName };
         if (currentMode === 'friend') socket.send(JSON.stringify(packet));
-        handleDngEvent(packet);
+        else handleDngEvent(packet);
     } else {
         // Normal chat
         const packet = { action: "dng_event", event: "chat", player: playerName, text: text };
         if (currentMode === 'friend') socket.send(JSON.stringify(packet));
-        handleDngEvent(packet);
+        else handleDngEvent(packet);
     }
 }
 
