@@ -1425,6 +1425,7 @@ let dngCurrentWord = "";
 let dngTimer = 0;
 let dngTimerInterval = null;
 let dngHasGuessed = false;
+let dngCorrectGuesses = 0;
 
 const dngWordList = [
     "APPLE", "BANANA", "HOUSE", "CAR", "DOG", "CAT", "SUN", "MOON", 
@@ -1515,6 +1516,7 @@ function handleDngEvent(data) {
         dngCurrentWord = data.word;
         dngScores = data.scores || dngScores;
         dngHasGuessed = false;
+        dngCorrectGuesses = 0;
         
         dngMyRole = (playerName === dngCurrentDrawer) ? "drawer" : "guesser";
         
@@ -1583,6 +1585,13 @@ function handleDngEvent(data) {
             dngScores[data.player] = (dngScores[data.player] || 0) + points;
             dngScores[dngCurrentDrawer] = (dngScores[dngCurrentDrawer] || 0) + Math.floor(points / 2);
             updateDngLeaderboard();
+            
+            dngCorrectGuesses++;
+            const totalGuessers = dngPlayers.length - 1;
+            if (dngCorrectGuesses >= totalGuessers && totalGuessers > 0) {
+                // Everyone has guessed correctly! End turn instantly.
+                endDngTurn();
+            }
         }
     }
 }
