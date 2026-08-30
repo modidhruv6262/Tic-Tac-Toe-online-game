@@ -265,6 +265,7 @@ vsBotBtn.addEventListener('click', () => {
     launchTicTacToe.classList.remove('locked-game'); 
     if (launchLudo) launchLudo.classList.remove('locked-game'); 
     if (launchToD) launchToD.classList.remove('locked-game'); 
+    if (launchDnG) launchDnG.classList.remove('locked-game');
     showScreen(hubScreen); 
 });
 
@@ -914,11 +915,13 @@ socket.onmessage = (event) => {
             launchTicTacToe.classList.remove('locked-game'); 
             if (launchLudo) launchLudo.classList.remove('locked-game'); 
             if (launchToD) launchToD.classList.remove('locked-game'); 
+            if (launchDnG) launchDnG.classList.remove('locked-game');
         } else { 
             hubRoleBanner.innerText = `Waiting for Host (${data.host}) to pick a game...`; 
             launchTicTacToe.classList.add('locked-game'); 
             if (launchLudo) launchLudo.classList.add('locked-game'); 
             if (launchToD) launchToD.classList.add('locked-game'); 
+            if (launchDnG) launchDnG.classList.add('locked-game');
         } 
         hubRoomDisplay.innerText = `Room Code: ${myRoomCode}`; 
         showScreen(hubScreen); 
@@ -1412,6 +1415,9 @@ let dngLastPos = {x: 0, y: 0};
 
 if (launchDnG) {
     launchDnG.addEventListener('click', () => {
+        if (myRole !== 'Host' && currentMode !== 'bot') return; // Prevent non-hosts
+        if (launchDnG.classList.contains('locked-game')) return; // Extra safety
+        
         if (myRole === 'Host' || currentMode === 'bot') { 
             if (currentMode === 'friend') {
                 socket.send(JSON.stringify({ action: "launch_game", game: "dng" }));
