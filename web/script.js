@@ -1760,7 +1760,7 @@ function updateTypingUI(context) {
     
     const typers = Array.from(activeTypers[context]);
     if (typers.length > 0) {
-        ind.innerText = typers.length === 1 ? `${typers[0]} is typing...` : `${typers.join(', ')} are typing...`;
+        ind.innerHTML = typers.length === 1 ? `${typers[0]} is typing<span class="typing-dots"></span>` : `${typers.join(', ')} are typing<span class="typing-dots"></span>`;
         ind.classList.remove('hidden');
     } else {
         ind.innerText = "";

@@ -843,3 +843,20 @@ button:active {
     font-weight: bold;
     font-style: italic;
 }
+
+/* --- TYPING INDICATOR ANIMATION --- */
+.typing-dots {
+    display: inline-block;
+    width: 12px;
+    text-align: left;
+    overflow: hidden;
+    vertical-align: bottom;
+    animation: typingDots 1.5s infinite steps(4, end);
+}
+.typing-dots::after {
+    content: '...';
+}
+@keyframes typingDots {
+    0% { width: 0; }
+    100% { width: 12px; }
+}
