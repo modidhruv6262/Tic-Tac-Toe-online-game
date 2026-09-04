@@ -312,6 +312,7 @@
         <!-- TURN INDICATOR -->
         <div id="todTurnArea" style="text-align: center; margin: 20px 0; flex: 1; display: flex; flex-direction: column; justify-content: center; align-items: center;">
             <h3 id="todStatusText" style="color: var(--primary-color); font-size: 1.5rem; margin-bottom: 15px;">Waiting for spin...</h3>
+            <div id="todTypingIndicator" class="typing-indicator hidden" style="color: var(--accent-cyan); font-style: italic; font-size: 0.9rem; margin-bottom: 10px; min-height: 1.2em;"></div>
             
             <!-- Spinning Bottle Area -->
             <div id="todBottleContainer" class="hidden" style="width: 150px; height: 150px; border-radius: 50%; border: 2px dashed rgba(255,255,255,0.3); position: relative; margin: 0 auto; display: flex; align-items: center; justify-content: center;">
@@ -386,6 +387,7 @@
             <button id="closeChatBtn" style="background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); font-size: 1.1rem; cursor: pointer; color: white; padding: 6px 10px; border-radius: 10px; backdrop-filter: blur(10px); width: 40px;">❌</button>
         </div>
         <div id="chatMessages" class="glass-inset"></div>
+        <div id="globalTypingIndicator" class="typing-indicator hidden" style="color: var(--accent-cyan); font-style: italic; font-size: 0.8rem; margin: 5px 0; min-height: 1.2em; text-align: left;"></div>
         <div class="chat-input-area">
             <input type="text" id="chatInput" placeholder="Type a message..." maxlength="100" class="glass-input">
             <button id="sendChatBtn" class="glass btn-primary">Send</button>
@@ -448,6 +450,7 @@
                     <!-- Guesses appear here -->
                 </div>
                 <div style="display: flex; flex-direction: column; gap: 8px;">
+                    <div id="dngTypingIndicator" class="typing-indicator hidden" style="color: var(--accent-cyan); font-style: italic; font-size: 0.85rem; text-align: left; margin-bottom: -5px; min-height: 1.2em;"></div>
                     <input type="text" id="dngGuessInput" class="glass-input" placeholder="Type guess..." style="width: 100%; padding: 12px; font-size: 1rem; box-sizing: border-box; text-align: center;">
                     <button id="dngGuessBtn" class="glass btn-primary" style="width: 100%; padding: 10px; font-size: 1rem;">Send</button>
                 </div>
@@ -459,6 +462,6 @@
         </div>
     </div>
 
-<script src="script.js?v=usefullgames37"></script>
+<script src="script.js?v=usefullgames38"></script>
 </body>
 </html>

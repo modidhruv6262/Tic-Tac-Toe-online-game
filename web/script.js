@@ -974,6 +974,14 @@ socket.onmessage = (event) => {
     else if (data.action === "dng_event") {
         handleDngEvent(data);
     }
+    else if (data.action === "typing") {
+        if (data.is_typing) {
+            activeTypers[data.context].add(data.player);
+        } else {
+            activeTypers[data.context].delete(data.player);
+        }
+        updateTypingUI(data.context);
+    }
     else if (data.type === "dice_rolled") { animateDice(data.value, data.roller); }
     else if (data.type === "ludo_move") { 
         diceRolledValue = data.roll; 
@@ -1705,4 +1713,57 @@ if (dngClearBtn) {
             socket.send(JSON.stringify({ action: "dng_clear" }));
         }
     });
+}
+
+// ==========================================
+// --- TYPING INDICATOR LOGIC ---
+// ==========================================
+let typingTimers = {};
+let isTypingState = {};
+let activeTypers = { global_chat: new Set(), dng: new Set(), tod: new Set() };
+
+function setupTypingIndicator(inputId, context) {
+    const inputEl = document.getElementById(inputId);
+    if (!inputEl) return;
+    
+    inputEl.addEventListener('input', () => {
+        if (currentMode !== 'friend') return;
+        
+        if (!isTypingState[context]) {
+            isTypingState[context] = true;
+            socket.send(JSON.stringify({ action: "typing", context: context, is_typing: true, player: playerName }));
+        }
+        
+        clearTimeout(typingTimers[context]);
+        typingTimers[context] = setTimeout(() => {
+            isTypingState[context] = false;
+            socket.send(JSON.stringify({ action: "typing", context: context, is_typing: false, player: playerName }));
+        }, 1500);
+    });
+}
+
+// Ensure elements exist before setting them up. Since script.js runs at the end, they should exist.
+setupTypingIndicator('chatInput', 'global_chat');
+setupTypingIndicator('dngGuessInput', 'dng');
+setupTypingIndicator('todCustomInput', 'tod');
+setupTypingIndicator('todTruthInput', 'tod');
+
+function updateTypingUI(context) {
+    let indicatorId = "";
+    if (context === 'global_chat') indicatorId = 'globalTypingIndicator';
+    if (context === 'dng') indicatorId = 'dngTypingIndicator';
+    if (context === 'tod') indicatorId = 'todTypingIndicator';
+    
+    if (!indicatorId) return;
+    const ind = document.getElementById(indicatorId);
+    if (!ind) return;
+    
+    const typers = Array.from(activeTypers[context]);
+    if (typers.length > 0) {
+        ind.innerText = typers.length === 1 ? `${typers[0]} is typing...` : `${typers.join(', ')} are typing...`;
+        ind.classList.remove('hidden');
+    } else {
+        ind.innerText = "";
+        ind.classList.add('hidden');
+    }
 }
