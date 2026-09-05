@@ -1,7 +1,12 @@
 let socket;
 const wsProtocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-const wsHost = window.location.host;
+let wsHost = window.location.host;
+if (!wsHost) wsHost = "localhost:8765"; // Fallback for local testing
 socket = new WebSocket(`${wsProtocol}//${wsHost}`);
+
+socket.onopen = () => console.log("Admin connected to server");
+socket.onerror = (e) => console.error("Admin WebSocket error", e);
+
 
 const loginScreen = document.getElementById('adminLoginScreen');
 const dashboard = document.getElementById('adminDashboard');
