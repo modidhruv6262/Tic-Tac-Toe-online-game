@@ -1,3 +1,19 @@
+
+// ==========================================
+// --- PLAYGIRD LOADING SCREEN ---
+// ==========================================
+window.addEventListener('load', () => {
+    // Artificial delay to show off the cool neon loading screen
+    setTimeout(() => {
+        const loadingScreen = document.getElementById('loadingScreen');
+        if (loadingScreen) {
+            loadingScreen.classList.add('fade-out');
+            // Completely remove from DOM after fade out to prevent blocking clicks
+            setTimeout(() => loadingScreen.remove(), 800); 
+        }
+    }, 1500);
+});
+
 const socket = new WebSocket('wss://tic-tac-toe-online-game-wokq.onrender.com');
 
 // --- UI ELEMENTS & GLOBALS ---

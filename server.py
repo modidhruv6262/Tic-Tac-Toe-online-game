@@ -2,6 +2,7 @@ import asyncio
 import websockets
 import os
 import json
+import urllib.request
 import random
 import string
 
@@ -11,6 +12,77 @@ player_rooms = {}
 
 def generate_code():
     return ''.join(random.choices(string.ascii_uppercase + string.digits, k=4))
+
+
+# --- SUPABASE LOGGING ---
+SUPABASE_URL = "https://bnmebnirpacsncqgjipw.supabase.co/rest/v1/connection_logs"
+ADMIN_PASSWORD = "admin"
+SUPABASE_KEY = "sb_secret_rAh_hFP2YuIBOB7azSbQlA_LL5msDtY"
+
+def _sync_log_connection(ip, player_name):
+    try:
+        # 1. Fetch Location using free IP-API
+        loc_data = "Unknown Location"
+        if ip and ip not in ("127.0.0.1", "::1"):
+            req = urllib.request.Request(f"http://ip-api.com/json/{ip}", headers={'User-Agent': 'Mozilla/5.0'})
+            with urllib.request.urlopen(req, timeout=3) as response:
+                ip_info = json.loads(response.read().decode())
+                if ip_info.get("status") == "success":
+                    loc_data = f"{ip_info.get('city', 'Unknown')}, {ip_info.get('country', 'Unknown')} ({ip_info.get('isp', 'Unknown ISP')})"
+        
+        # 2. Push to Supabase
+        payload = json.dumps({
+            "ip_address": ip,
+            "player_name": player_name,
+            "location": loc_data
+        }).encode('utf-8')
+        
+        headers = {
+            "apikey": SUPABASE_KEY,
+            "Authorization": f"Bearer {SUPABASE_KEY}",
+            "Content-Type": "application/json"
+        }
+        
+        req = urllib.request.Request(SUPABASE_URL, data=payload, headers=headers, method="POST")
+        with urllib.request.urlopen(req, timeout=5) as response:
+            pass # Successfully saved!
+    except Exception as e:
+        print(f"Failed to log to Supabase: {e}")
+
+
+def _sync_get_admin_logs():
+    try:
+        req = urllib.request.Request(SUPABASE_URL + "?select=*", headers={
+            "apikey": SUPABASE_KEY,
+            "Authorization": f"Bearer {SUPABASE_KEY}",
+            "Content-Type": "application/json"
+        }, method="GET")
+        with urllib.request.urlopen(req, timeout=5) as response:
+            return json.loads(response.read().decode())
+    except Exception as e:
+        print(f"Failed to fetch logs: {e}")
+        return []
+
+async def fetch_and_send_admin_logs(websocket):
+    loop = asyncio.get_running_loop()
+    logs = await loop.run_in_executor(None, _sync_get_admin_logs)
+    await websocket.send(json.dumps({"type": "admin_data", "logs": logs}))
+
+async def log_connection(websocket, player_name):
+    try:
+        # Get real IP if behind Render's load balancer
+        x_forwarded = websocket.request_headers.get("X-Forwarded-For")
+        if x_forwarded:
+            ip = x_forwarded.split(',')[0].strip()
+        else:
+            ip = websocket.remote_address[0]
+            
+        # Run network requests in background thread to avoid freezing game
+        loop = asyncio.get_running_loop()
+        await loop.run_in_executor(None, _sync_log_connection, ip, player_name)
+    except Exception:
+        pass
+# ------------------------
 
 async def broadcast_lobby(room_code):
     if room_code in rooms:
@@ -50,6 +122,7 @@ async def game_handler(websocket):
                 }
                 player_rooms[websocket] = room_code
                 await websocket.send(json.dumps({"type": "room_created", "room": room_code}))
+                asyncio.create_task(log_connection(websocket, data.get("name", "Host")))
                 await broadcast_lobby(room_code)
 
             elif action == "join":
@@ -60,6 +133,7 @@ async def game_handler(websocket):
                         room["players"].append({"ws": websocket, "name": data.get("name", "Guest")})
                         player_rooms[websocket] = room_code
                         await broadcast_lobby(room_code)
+                        asyncio.create_task(log_connection(websocket, data.get("name", "Guest")))
                     else:
                         await websocket.send(json.dumps({"type": "error", "message": "Room is full!"}))
                 else:
@@ -203,6 +277,14 @@ async def game_handler(websocket):
                             break
                     for p in rooms[room_code]["players"]:
                         await p["ws"].send(json.dumps({"type": "chat", "sender": sender_name, "message": data.get("message")}))
+
+            elif action == "admin_request":
+                password = data.get("password")
+                if password == ADMIN_PASSWORD:
+                    await websocket.send(json.dumps({"type": "admin_auth_success"}))
+                    asyncio.create_task(fetch_and_send_admin_logs(websocket))
+                else:
+                    await websocket.send(json.dumps({"type": "admin_auth_failed"}))
 
             elif action == "typing":
                 room_code = player_rooms.get(websocket)

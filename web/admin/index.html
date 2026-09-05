@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Playgrid Admin</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="admin.css?v=1">
+</head>
+<body>
+
+    <!-- LOGIN SCREEN -->
+    <div id="adminLoginScreen" class="overlay flex-center">
+        <div class="glass-card">
+            <h1 class="logo glow-text">PLAYGRID</h1>
+            <p class="subtitle">Secure Admin Terminal</p>
+            <input type="password" id="adminPassword" class="glass-input" placeholder="Enter Admin Password">
+            <button id="adminLoginBtn" class="glass-btn btn-primary mt-10">Access Terminal</button>
+            <p id="loginError" class="error-text hidden">Access Denied. Invalid Password.</p>
+        </div>
+    </div>
+
+    <!-- MAIN DASHBOARD -->
+    <div id="adminDashboard" class="dashboard-layout hidden">
+        <!-- Sidebar -->
+        <div class="sidebar glass-panel">
+            <h2 class="logo glow-text small">PLAYGRID</h2>
+            <div class="nav-links">
+                <button class="nav-btn active">Live Logs</button>
+                <button class="nav-btn" onclick="alert('Feature coming soon!')">User Banlist</button>
+                <button class="nav-btn" onclick="alert('Feature coming soon!')">Server Settings</button>
+            </div>
+            <div class="sidebar-bottom">
+                <button id="refreshBtn" class="glass-btn btn-secondary">Refresh Data</button>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="main-content">
+            <header class="topbar glass-panel">
+                <h2>Connection Terminal</h2>
+                <div class="stats-row">
+                    <div class="stat-card glass-panel">
+                        <span class="stat-title">Total Connections</span>
+                        <span id="statTotal" class="stat-value">0</span>
+                    </div>
+                    <div class="stat-card glass-panel">
+                        <span class="stat-title">Unique IPs</span>
+                        <span id="statUnique" class="stat-value">0</span>
+                    </div>
+                </div>
+            </header>
+
+            <div class="table-container glass-panel mt-20">
+                <table class="glass-table">
+                    <thead>
+                        <tr>
+                            <th>Timestamp</th>
+                            <th>Player Name</th>
+                            <th>IP Address</th>
+                            <th>Location / ISP</th>
+                        </tr>
+                    </thead>
+                    <tbody id="logsTableBody">
+                        <!-- Data populated by JS -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script src="admin.js?v=1"></script>
+</body>
+</html>

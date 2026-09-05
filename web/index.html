@@ -3,11 +3,17 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Private Arcade Hub</title>
-    <link rel="stylesheet" href="style.css?v=usefullgames23">
+    <title>Playgrid</title>
+    <link rel="stylesheet" href="style.css?v=usefullgames43">
 </head>
 <body>
-    <!-- ANIMATED LIQUID BACKGROUND -->
+    <!-- LOADING SCREEN -->
+    <div id="loadingScreen">
+        <h1 class="playgrid-logo">PLAYGRID</h1>
+        <div class="loading-spinner"></div>
+    </div>
+    
+<!-- ANIMATED LIQUID BACKGROUND -->
     <div id="bgAnimation">
         <div class="orb orb-1"></div>
         <div class="orb orb-2"></div>
@@ -18,12 +24,12 @@
 
     <button id="themeToggle" class="glass theme-btn">☀️<span class="theme-text"> Light</span></button>
 
-    <h1>Arcade Hub</h1>
+    <h1 class="main-title">Playgrid</h1>
     
     <!-- 1. IDENTIFICATION -->
     <div id="nameScreen" class="glass-card glass">
         <h2>Welcome!</h2>
-        <input type="text" id="nameInput" placeholder="e.g., Player" maxlength="12" class="glass-input">
+        <input type="text" id="nameInput" placeholder="Enter Your Name" maxlength="12" class="glass-input">
         <button id="saveNameBtn" class="glass btn-primary">Continue</button>
     </div>
 
@@ -462,6 +468,6 @@
         </div>
     </div>
 
-<script src="script.js?v=usefullgames39"></script>
+<script src="script.js?v=usefullgames43"></script>
 </body>
 </html>
