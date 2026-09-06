@@ -18,6 +18,7 @@ def generate_code():
 SUPABASE_URL = "https://bnmebnirpacsncqgjipw.supabase.co/rest/v1/connection_logs"
 ADMIN_PASSWORD = "admin"
 SUPABASE_KEY = os.environ.get("SUPABASE_KEY", "")
+print(f"[STARTUP] SUPABASE_KEY loaded: {'YES (' + SUPABASE_KEY[:10] + '...)' if SUPABASE_KEY else 'NO - EMPTY!'}")
 
 def _sync_log_connection(ip, player_name):
     loc_data = "Unknown Location"
@@ -46,7 +47,7 @@ def _sync_log_connection(ip, player_name):
         
         req = urllib.request.Request(SUPABASE_URL, data=payload, headers=headers, method="POST")
         with urllib.request.urlopen(req, timeout=5) as response:
-            pass # Successfully saved!
+            print(f"[SUPABASE] Successfully saved {player_name} from {ip} - Status: {response.status}")
     except Exception as e:
         print(f"Failed to log to Supabase: {e}")
 
@@ -127,6 +128,7 @@ async def game_handler(websocket):
 
             elif action == "save_name":
                 # Log exactly when they enter their name and hit continue
+                print(f"[SAVE_NAME] Received name: {data.get('name', 'Unknown')}")
                 asyncio.create_task(log_connection(websocket, data.get("name", "Unknown")))
 
             elif action == "join":
