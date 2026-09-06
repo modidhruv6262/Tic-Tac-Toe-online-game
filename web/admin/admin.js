@@ -67,8 +67,8 @@ function populateLogs(logs) {
         uniqueIPs.add(log.ip_address);
         const tr = document.createElement('tr');
         
-        const d = new Date(log.created_at);
-        const timeStr = d.toLocaleString();
+        const d = log.created_at ? new Date(log.created_at) : null;
+        const timeStr = d && !isNaN(d) ? d.toLocaleString() : 'N/A';
 
         tr.innerHTML = `
             <td style="color: var(--text-muted); font-size: 0.8rem;">${timeStr}</td>

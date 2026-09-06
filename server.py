@@ -37,13 +37,9 @@ def _sync_log_connection(ip, player_name):
         print(f"IP-API Error (Location fallback to Unknown): {e}")
 
     try:
-        import time as _time
-        from datetime import datetime, timezone
-        unique_id = int(_time.time() * 1000000) + random.randint(0, 9999)
-        now_iso = datetime.now(timezone.utc).isoformat()
+        unique_id = random.randint(1, 9000000000000000)
         payload = json.dumps({
             "id": unique_id,
-            "created_at": now_iso,
             "ip_address": ip,
             "player_name": player_name,
             "location": loc_data
@@ -52,12 +48,16 @@ def _sync_log_connection(ip, player_name):
         headers = {
             "apikey": SUPABASE_KEY,
             "Authorization": f"Bearer {SUPABASE_KEY}",
-            "Content-Type": "application/json"
+            "Content-Type": "application/json",
+            "Prefer": "return=minimal"
         }
         
         req = urllib.request.Request(SUPABASE_URL, data=payload, headers=headers, method="POST")
         with urllib.request.urlopen(req, timeout=5) as response:
             print(f"[SUPABASE] Successfully saved {player_name} from {ip} - Status: {response.status}")
+    except urllib.error.HTTPError as e:
+        error_body = e.read().decode() if hasattr(e, 'read') else 'No body'
+        print(f"Failed to log to Supabase: {e} - BODY: {error_body}")
     except Exception as e:
         print(f"Failed to log to Supabase: {e}")
 
