@@ -22,7 +22,12 @@ const statUnique = document.getElementById('statUnique');
 loginBtn.addEventListener('click', () => {
     const pwd = passInput.value.trim();
     if (pwd) {
-        socket.send(JSON.stringify({ action: "admin_request", password: pwd }));
+        if (socket.readyState === WebSocket.OPEN) {
+            socket.send(JSON.stringify({ action: "admin_request", password: pwd }));
+        } else {
+            errorMsg.innerText = "Error: Cannot connect to server. Did you push to Render?";
+            errorMsg.classList.remove('hidden');
+        }
     }
 });
 passInput.addEventListener('keypress', (e) => {
