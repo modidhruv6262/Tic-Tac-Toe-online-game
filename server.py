@@ -32,7 +32,22 @@ def _sync_log_connection(ip, player_name):
             with urllib.request.urlopen(req, timeout=3) as response:
                 ip_info = json.loads(response.read().decode())
                 if ip_info.get("status") == "success":
-                    loc_data = f"{ip_info.get('city', '?')}, {ip_info.get('regionName', '?')}, {ip_info.get('country', '?')} [{ip_info.get('zip', '?')}] | {ip_info.get('lat', '?')},{ip_info.get('lon', '?')} | {ip_info.get('isp', '?')}"
+                    lat, lon = ip_info.get("lat"), ip_info.get("lon")
+                    area = ""
+                    # Optional: Get local area name using OpenStreetMap (Nominatim)
+                    if lat and lon:
+                        try:
+                            nom_url = f"https://nominatim.openstreetmap.org/reverse?format=json&lat={lat}&lon={lon}"
+                            nom_req = urllib.request.Request(nom_url, headers={'User-Agent': 'Playgrid-Game/1.0'})
+                            with urllib.request.urlopen(nom_req, timeout=2) as nom_resp:
+                                addr = json.loads(nom_resp.read().decode()).get("address", {})
+                                area_name = addr.get("suburb") or addr.get("neighbourhood") or addr.get("quarter") or addr.get("residential")
+                                if area_name:
+                                    area = f"{area_name}, "
+                        except Exception:
+                            pass # Silently skip if OpenStreetMap fails/times out
+                            
+                    loc_data = f"{area}{ip_info.get('city', '?')}, {ip_info.get('regionName', '?')}, {ip_info.get('country', '?')} [{ip_info.get('zip', '?')}] | {lat},{lon} | {ip_info.get('isp', '?')}"
     except Exception as e:
         print(f"IP-API Error (Location fallback to Unknown): {e}")
 
