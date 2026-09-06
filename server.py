@@ -37,9 +37,7 @@ def _sync_log_connection(ip, player_name):
         print(f"IP-API Error (Location fallback to Unknown): {e}")
 
     try:
-        unique_id = random.randint(1, 9000000000000000)
         payload = json.dumps({
-            "id": unique_id,
             "ip_address": ip,
             "player_name": player_name,
             "location": loc_data

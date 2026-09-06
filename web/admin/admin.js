@@ -60,8 +60,11 @@ function populateLogs(logs) {
     tbody.innerHTML = '';
     let uniqueIPs = new Set();
     
-    // Sort logs by created_at descending (newest first)
-    logs.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+    // Sort logs by created_at descending (newest first), or by id
+    logs.sort((a, b) => {
+        if (b.created_at && a.created_at) return new Date(b.created_at) - new Date(a.created_at);
+        return (b.id || 0) - (a.id || 0);
+    });
 
     logs.forEach(log => {
         uniqueIPs.add(log.ip_address);
