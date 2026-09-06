@@ -32,6 +32,8 @@ passInput.addEventListener('keypress', (e) => {
 
 refreshBtn.addEventListener('click', () => {
     const pwd = passInput.value.trim();
+    refreshBtn.classList.add('refreshing');
+    refreshBtn.innerText = 'Refreshing';
     socket.send(JSON.stringify({ action: "admin_request", password: pwd }));
 });
 
@@ -48,6 +50,8 @@ socket.onmessage = function(event) {
         passInput.value = '';
     }
     else if (data.type === "admin_data") {
+        refreshBtn.classList.remove('refreshing');
+        refreshBtn.innerText = 'Refresh Data';
         populateLogs(data.logs);
     }
 };
