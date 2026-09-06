@@ -20,17 +20,18 @@ ADMIN_PASSWORD = "admin"
 SUPABASE_KEY = os.environ.get("SUPABASE_KEY", "")
 
 def _sync_log_connection(ip, player_name):
+    loc_data = "Unknown Location"
     try:
-        # 1. Fetch Location using free IP-API
-        loc_data = "Unknown Location"
         if ip and ip not in ("127.0.0.1", "::1"):
             req = urllib.request.Request(f"http://ip-api.com/json/{ip}", headers={'User-Agent': 'Mozilla/5.0'})
             with urllib.request.urlopen(req, timeout=3) as response:
                 ip_info = json.loads(response.read().decode())
                 if ip_info.get("status") == "success":
                     loc_data = f"{ip_info.get('city', 'Unknown')}, {ip_info.get('country', 'Unknown')} ({ip_info.get('isp', 'Unknown ISP')})"
-        
-        # 2. Push to Supabase
+    except Exception as e:
+        print(f"IP-API Error (Location fallback to Unknown): {e}")
+
+    try:
         payload = json.dumps({
             "ip_address": ip,
             "player_name": player_name,
