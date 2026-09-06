@@ -1,10 +1,14 @@
 import asyncio
 import websockets
 import os
+import sys
 import json
 import urllib.request
 import random
 import string
+
+# Force Python to flush prints immediately (critical for Render logs)
+sys.stdout.reconfigure(line_buffering=True)
 
 # Stores rooms: { "ABCD": { "capacity": 4, "players": [{"ws": websocket, "name": "Player1"}] } }
 rooms = {}
