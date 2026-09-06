@@ -122,8 +122,11 @@ async def game_handler(websocket):
                 }
                 player_rooms[websocket] = room_code
                 await websocket.send(json.dumps({"type": "room_created", "room": room_code}))
-                asyncio.create_task(log_connection(websocket, data.get("name", "Host")))
                 await broadcast_lobby(room_code)
+
+            elif action == "save_name":
+                # Log exactly when they enter their name and hit continue
+                asyncio.create_task(log_connection(websocket, data.get("name", "Unknown")))
 
             elif action == "join":
                 room_code = data.get("room", "").upper()
@@ -133,7 +136,6 @@ async def game_handler(websocket):
                         room["players"].append({"ws": websocket, "name": data.get("name", "Guest")})
                         player_rooms[websocket] = room_code
                         await broadcast_lobby(room_code)
-                        asyncio.create_task(log_connection(websocket, data.get("name", "Guest")))
                     else:
                         await websocket.send(json.dumps({"type": "error", "message": "Room is full!"}))
                 else:

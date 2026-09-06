@@ -268,6 +268,7 @@ nameInput.addEventListener('keypress', (e) => {
 saveNameBtn.addEventListener('click', () => { 
     playerName = nameInput.value.trim() || "Player"; 
     document.getElementById('greetingText').innerText = `Hey ${playerName}!`; 
+    socket.send(JSON.stringify({ action: "save_name", name: playerName }));
     showScreen(modeScreen); 
 });
 
