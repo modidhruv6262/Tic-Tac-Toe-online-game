@@ -80,8 +80,8 @@ async def log_connection(websocket, player_name):
         # Run network requests in background thread to avoid freezing game
         loop = asyncio.get_running_loop()
         await loop.run_in_executor(None, _sync_log_connection, ip, player_name)
-    except Exception:
-        pass
+    except Exception as e:
+        print(f"CRITICAL ERROR in log_connection: {e}")
 # ------------------------
 
 async def broadcast_lobby(room_code):

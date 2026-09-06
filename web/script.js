@@ -268,7 +268,17 @@ nameInput.addEventListener('keypress', (e) => {
 saveNameBtn.addEventListener('click', () => { 
     playerName = nameInput.value.trim() || "Player"; 
     document.getElementById('greetingText').innerText = `Hey ${playerName}!`; 
-    socket.send(JSON.stringify({ action: "save_name", name: playerName }));
+    
+    // Ensure socket is actually connected before sending
+    const trySend = () => {
+        if (socket.readyState === WebSocket.OPEN) {
+            socket.send(JSON.stringify({ action: "save_name", name: playerName }));
+        } else {
+            setTimeout(trySend, 200); // Check again in 200ms
+        }
+    };
+    trySend();
+    
     showScreen(modeScreen); 
 });
 
