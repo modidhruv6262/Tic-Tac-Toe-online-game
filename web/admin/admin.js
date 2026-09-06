@@ -1,8 +1,4 @@
-let socket;
-const wsProtocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-let wsHost = window.location.host;
-if (!wsHost) wsHost = "localhost:8765"; // Fallback for local testing
-socket = new WebSocket(`${wsProtocol}//${wsHost}`);
+let socket = new WebSocket('wss://tic-tac-toe-online-game-wokq.onrender.com');
 
 socket.onopen = () => console.log("Admin connected to server");
 socket.onerror = (e) => console.error("Admin WebSocket error", e);
