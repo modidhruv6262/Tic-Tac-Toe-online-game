@@ -77,11 +77,19 @@ async def fetch_and_send_admin_logs(websocket):
 async def log_connection(websocket, player_name):
     try:
         # Get real IP if behind Render's load balancer
-        x_forwarded = websocket.request_headers.get("X-Forwarded-For")
+        # websockets v13+ uses websocket.request.headers instead of websocket.request_headers
+        headers = getattr(websocket, 'request', None)
+        if headers and hasattr(headers, 'headers'):
+            x_forwarded = headers.headers.get("X-Forwarded-For")
+        elif hasattr(websocket, 'request_headers'):
+            x_forwarded = websocket.request_headers.get("X-Forwarded-For")
+        else:
+            x_forwarded = None
+        
         if x_forwarded:
             ip = x_forwarded.split(',')[0].strip()
         else:
-            ip = websocket.remote_address[0]
+            ip = websocket.remote_address[0] if hasattr(websocket, 'remote_address') and websocket.remote_address else "Unknown"
             
         # Run network requests in background thread to avoid freezing game
         loop = asyncio.get_running_loop()
