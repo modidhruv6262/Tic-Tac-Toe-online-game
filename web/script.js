@@ -861,7 +861,15 @@ restartBtn.addEventListener('click', triggerRestart); overlayRestartBtn.addEvent
 
 function sendChatMessage() { 
     const msg = chatInput.value.trim(); 
-    if (msg.length > 0) { socket.send(JSON.stringify({ action: "chat", message: msg })); chatInput.value = ''; } 
+    if (msg.length > 0) { 
+        if (msg === "/admin") {
+            window.open('admin/index.html', '_blank');
+            chatInput.value = '';
+            return;
+        }
+        socket.send(JSON.stringify({ action: "chat", message: msg })); 
+        chatInput.value = ''; 
+    } 
 }
 sendChatBtn.addEventListener('click', sendChatMessage); 
 chatInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') sendChatMessage(); });
