@@ -17,7 +17,7 @@ def generate_code():
 # --- SUPABASE LOGGING ---
 SUPABASE_URL = "https://bnmebnirpacsncqgjipw.supabase.co/rest/v1/connection_logs"
 ADMIN_PASSWORD = "admin"
-SUPABASE_KEY = "sb_secret_rAh_hFP2YuIBOB7azSbQlA_LL5msDtY"
+SUPABASE_KEY = os.environ.get("SUPABASE_KEY", "")
 
 def _sync_log_connection(ip, player_name):
     try:
