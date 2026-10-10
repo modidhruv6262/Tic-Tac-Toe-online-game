@@ -1889,6 +1889,8 @@ function renderChessBoard() {
             square.style.justifyContent = 'center';
             square.style.width = '100%';
             square.style.height = '100%';
+            square.style.minHeight = '0';
+            square.style.overflow = 'hidden';
             square.style.fontSize = '2.5rem';
             square.style.cursor = 'pointer';
             square.style.position = 'relative'; // For absolute positioning of dots
