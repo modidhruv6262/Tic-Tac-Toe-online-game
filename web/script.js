@@ -1887,9 +1887,12 @@ function renderChessBoard() {
             square.style.display = 'flex';
             square.style.alignItems = 'center';
             square.style.justifyContent = 'center';
+            square.style.width = '100%';
+            square.style.height = '100%';
             square.style.fontSize = '2.5rem';
             square.style.cursor = 'pointer';
             square.style.position = 'relative'; // For absolute positioning of dots
+            square.style.boxSizing = 'border-box';
             
             const alg = String.fromCharCode(97 + c) + (8 - r);
             square.dataset.square = alg;
