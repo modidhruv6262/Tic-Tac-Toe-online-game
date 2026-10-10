@@ -1825,7 +1825,8 @@ function updateTypingUI(context) {
 // CHESS GAME (Single Player vs Bot Only)
 // ==========================================
 let chessGame = null;
-let chessBotLevel = 2; // 1 = Random, 2 = Basic Eval (fallback to random if simple), 3 = Better Eval
+let chessBotLevel = 2;
+let chessGameOver = false;
 
 if (launchChess) {
     launchChess.addEventListener('click', () => {
@@ -1842,6 +1843,7 @@ if (leaveChessBtn) {
     leaveChessBtn.addEventListener('click', () => {
         showScreen(document.getElementById('hubScreen'));
         chessGame = null;
+        chessGameOver = false;
     });
 }
 
@@ -1852,6 +1854,8 @@ function startChessGame() {
         return;
     }
     chessGame = new Chess();
+    chessGameOver = false;
+    selectedSquare = null;
     renderChessBoard();
     updateChessStatus();
 }
@@ -1875,7 +1879,7 @@ function renderChessBoard() {
     const board = chessGame.board();
     
     let validMoves = [];
-    if (selectedSquare) {
+    if (selectedSquare && !chessGameOver) {
         validMoves = chessGame.moves({ square: selectedSquare, verbose: true }).map(m => m.to);
     }
     
@@ -1892,18 +1896,23 @@ function renderChessBoard() {
             square.style.minHeight = '0';
             square.style.overflow = 'hidden';
             square.style.fontSize = '2.5rem';
-            square.style.cursor = 'pointer';
-            square.style.position = 'relative'; // For absolute positioning of dots
+            square.style.cursor = chessGameOver ? 'default' : 'pointer';
+            square.style.position = 'relative';
             square.style.boxSizing = 'border-box';
             
             const alg = String.fromCharCode(97 + c) + (8 - r);
             square.dataset.square = alg;
             
             if (selectedSquare === alg) {
-                square.style.backgroundColor = '#baca44'; // highlight selected
+                square.style.backgroundColor = '#baca44';
             }
             
+            // Highlight king in check
             let piece = board[r][c];
+            if (piece && piece.type === 'k' && chessGame.in_check() && piece.color === chessGame.turn()) {
+                square.style.backgroundColor = '#e74c3c';
+            }
+            
             if (piece) {
                 let pieceSpan = document.createElement('span');
                 pieceSpan.innerHTML = getPieceSymbol(piece.type, piece.color);
@@ -1918,13 +1927,11 @@ function renderChessBoard() {
                 let dot = document.createElement('div');
                 dot.style.position = 'absolute';
                 if (piece) {
-                    // Capture highlight (circle outline or larger dot)
                     dot.style.width = '85%';
                     dot.style.height = '85%';
                     dot.style.borderRadius = '50%';
                     dot.style.border = '4px solid rgba(0, 0, 0, 0.15)';
                 } else {
-                    // Normal move dot
                     dot.style.width = '30%';
                     dot.style.height = '30%';
                     dot.style.borderRadius = '50%';
@@ -1941,27 +1948,32 @@ function renderChessBoard() {
 }
 
 function handleSquareClick(square) {
-    if (!chessGame || chessGame.turn() !== 'w' || chessGame.game_over()) return;
+    if (!chessGame || chessGameOver) return;
+    if (chessGame.turn() !== 'w') return; // Not player's turn
+    if (chessGame.game_over()) { chessGameOver = true; updateChessStatus(); return; }
     
     if (selectedSquare) {
-        // try to move
-        const move = chessGame.move({
-            from: selectedSquare,
-            to: square,
-            promotion: 'q' // always promote to queen for simplicity
-        });
+        // Check if this is a valid move destination
+        const legalMoves = chessGame.moves({ square: selectedSquare, verbose: true });
+        const targetMove = legalMoves.find(m => m.to === square);
         
-        if (move) {
-            // Valid move
+        if (targetMove) {
+            // Make the move (chess.js validates everything: check, pin, etc.)
+            chessGame.move(targetMove.san);
             selectedSquare = null;
             renderChessBoard();
             updateChessStatus();
             
-            if (!chessGame.game_over()) {
-                setTimeout(makeBotMove, 500); // bot thinks
+            if (chessGame.game_over()) {
+                chessGameOver = true;
+                updateChessStatus();
+                return;
             }
+            
+            // Bot's turn
+            setTimeout(makeBotMove, 400);
         } else {
-            // Invalid move, maybe selecting a different piece
+            // Clicked on own piece? Switch selection
             const piece = chessGame.get(square);
             if (piece && piece.color === 'w') {
                 selectedSquare = square;
@@ -1979,47 +1991,213 @@ function handleSquareClick(square) {
     }
 }
 
+// ==========================================
+// CHESS BOT AI - Minimax with Alpha-Beta
+// ==========================================
+
+const PIECE_VALUES = { 'p': 100, 'n': 320, 'b': 330, 'r': 500, 'q': 900, 'k': 20000 };
+
+// Piece-square tables (from white's perspective, flip for black)
+const PST = {
+    'p': [
+         0,  0,  0,  0,  0,  0,  0,  0,
+        50, 50, 50, 50, 50, 50, 50, 50,
+        10, 10, 20, 30, 30, 20, 10, 10,
+         5,  5, 10, 25, 25, 10,  5,  5,
+         0,  0,  0, 20, 20,  0,  0,  0,
+         5, -5,-10,  0,  0,-10, -5,  5,
+         5, 10, 10,-20,-20, 10, 10,  5,
+         0,  0,  0,  0,  0,  0,  0,  0
+    ],
+    'n': [
+        -50,-40,-30,-30,-30,-30,-40,-50,
+        -40,-20,  0,  0,  0,  0,-20,-40,
+        -30,  0, 10, 15, 15, 10,  0,-30,
+        -30,  5, 15, 20, 20, 15,  5,-30,
+        -30,  0, 15, 20, 20, 15,  0,-30,
+        -30,  5, 10, 15, 15, 10,  5,-30,
+        -40,-20,  0,  5,  5,  0,-20,-40,
+        -50,-40,-30,-30,-30,-30,-40,-50
+    ],
+    'b': [
+        -20,-10,-10,-10,-10,-10,-10,-20,
+        -10,  0,  0,  0,  0,  0,  0,-10,
+        -10,  0, 10, 10, 10, 10,  0,-10,
+        -10,  5,  5, 10, 10,  5,  5,-10,
+        -10,  0, 10, 10, 10, 10,  0,-10,
+        -10, 10, 10, 10, 10, 10, 10,-10,
+        -10,  5,  0,  0,  0,  0,  5,-10,
+        -20,-10,-10,-10,-10,-10,-10,-20
+    ],
+    'r': [
+         0,  0,  0,  0,  0,  0,  0,  0,
+         5, 10, 10, 10, 10, 10, 10,  5,
+        -5,  0,  0,  0,  0,  0,  0, -5,
+        -5,  0,  0,  0,  0,  0,  0, -5,
+        -5,  0,  0,  0,  0,  0,  0, -5,
+        -5,  0,  0,  0,  0,  0,  0, -5,
+        -5,  0,  0,  0,  0,  0,  0, -5,
+         0,  0,  0,  5,  5,  0,  0,  0
+    ],
+    'q': [
+        -20,-10,-10, -5, -5,-10,-10,-20,
+        -10,  0,  0,  0,  0,  0,  0,-10,
+        -10,  0,  5,  5,  5,  5,  0,-10,
+         -5,  0,  5,  5,  5,  5,  0, -5,
+          0,  0,  5,  5,  5,  5,  0, -5,
+        -10,  5,  5,  5,  5,  5,  0,-10,
+        -10,  0,  5,  0,  0,  0,  0,-10,
+        -20,-10,-10, -5, -5,-10,-10,-20
+    ],
+    'k': [
+        -30,-40,-40,-50,-50,-40,-40,-30,
+        -30,-40,-40,-50,-50,-40,-40,-30,
+        -30,-40,-40,-50,-50,-40,-40,-30,
+        -30,-40,-40,-50,-50,-40,-40,-30,
+        -20,-30,-30,-40,-40,-30,-30,-20,
+        -10,-20,-20,-20,-20,-20,-20,-10,
+         20, 20,  0,  0,  0,  0, 20, 20,
+         20, 30, 10,  0,  0, 10, 30, 20
+    ]
+};
+
+function evaluateBoard(game) {
+    if (game.in_checkmate()) {
+        return game.turn() === 'b' ? 99999 : -99999;
+    }
+    if (game.in_draw() || game.in_stalemate() || game.in_threefold_repetition()) {
+        return 0;
+    }
+    
+    let score = 0;
+    const board = game.board();
+    
+    for (let r = 0; r < 8; r++) {
+        for (let c = 0; c < 8; c++) {
+            const piece = board[r][c];
+            if (!piece) continue;
+            
+            const val = PIECE_VALUES[piece.type];
+            const pst = PST[piece.type];
+            
+            if (piece.color === 'w') {
+                score += val + (pst ? pst[r * 8 + c] : 0);
+            } else {
+                // Flip the PST vertically for black
+                score -= val + (pst ? pst[(7 - r) * 8 + c] : 0);
+            }
+        }
+    }
+    return score;
+}
+
+function minimax(game, depth, alpha, beta, isMaximizing) {
+    if (depth === 0 || game.game_over()) {
+        return evaluateBoard(game);
+    }
+    
+    const moves = game.moves();
+    
+    if (isMaximizing) {
+        let maxEval = -Infinity;
+        for (const move of moves) {
+            game.move(move);
+            const eval_ = minimax(game, depth - 1, alpha, beta, false);
+            game.undo();
+            maxEval = Math.max(maxEval, eval_);
+            alpha = Math.max(alpha, eval_);
+            if (beta <= alpha) break; // Alpha-beta pruning
+        }
+        return maxEval;
+    } else {
+        let minEval = Infinity;
+        for (const move of moves) {
+            game.move(move);
+            const eval_ = minimax(game, depth - 1, alpha, beta, true);
+            game.undo();
+            minEval = Math.min(minEval, eval_);
+            beta = Math.min(beta, eval_);
+            if (beta <= alpha) break; // Alpha-beta pruning
+        }
+        return minEval;
+    }
+}
+
 function makeBotMove() {
-    if (!chessGame || chessGame.game_over()) return;
+    if (!chessGame || chessGame.game_over()) {
+        chessGameOver = true;
+        updateChessStatus();
+        return;
+    }
     
-    const possibleMoves = chessGame.moves();
-    if (possibleMoves.length === 0) return;
+    const moves = chessGame.moves();
+    if (moves.length === 0) {
+        chessGameOver = true;
+        updateChessStatus();
+        return;
+    }
     
-    // Very simple bot: random move for Easy, capture preferred for Medium/Hard
-    let bestMove = possibleMoves[Math.floor(Math.random() * possibleMoves.length)];
+    let bestMove = null;
     
-    if (chessBotLevel >= 2) {
-        // Find if there's a capture move
-        const captures = possibleMoves.filter(m => m.includes('x'));
-        if (captures.length > 0) {
-            bestMove = captures[Math.floor(Math.random() * captures.length)];
+    if (chessBotLevel === 1) {
+        // Easy: Random move
+        bestMove = moves[Math.floor(Math.random() * moves.length)];
+    } else {
+        // Medium: depth 2, Hard: depth 3
+        const searchDepth = chessBotLevel === 2 ? 2 : 3;
+        let bestScore = Infinity; // Bot is black (minimizing)
+        
+        for (const move of moves) {
+            chessGame.move(move);
+            const score = minimax(chessGame, searchDepth - 1, -Infinity, Infinity, true);
+            chessGame.undo();
+            
+            if (score < bestScore) {
+                bestScore = score;
+                bestMove = move;
+            }
         }
     }
     
-    if (chessBotLevel === 3) {
-        // Find if there's a check move
-        const checks = possibleMoves.filter(m => m.includes('+'));
-        if (checks.length > 0) {
-            bestMove = checks[Math.floor(Math.random() * checks.length)];
-        }
+    if (bestMove) {
+        chessGame.move(bestMove);
     }
     
-    chessGame.move(bestMove);
+    selectedSquare = null;
     renderChessBoard();
+    
+    if (chessGame.game_over()) {
+        chessGameOver = true;
+    }
     updateChessStatus();
 }
 
 function updateChessStatus() {
     const statusDisp = document.getElementById('chessStatusDisplay');
-    if(!statusDisp) return;
+    if(!statusDisp || !chessGame) return;
     
     if (chessGame.in_checkmate()) {
-        statusDisp.innerText = `Checkmate! ${chessGame.turn() === 'w' ? 'Black' : 'White'} wins!`;
-    } else if (chessGame.in_draw()) {
-        statusDisp.innerText = 'Draw!';
+        const winner = chessGame.turn() === 'w' ? 'Bot (Black)' : 'You (White)';
+        statusDisp.innerText = `♚ Checkmate! ${winner} wins!`;
+        statusDisp.style.color = chessGame.turn() === 'w' ? '#e74c3c' : '#2ecc71';
+        chessGameOver = true;
     } else if (chessGame.in_stalemate()) {
-        statusDisp.innerText = 'Stalemate!';
+        statusDisp.innerText = '½ Stalemate - Draw!';
+        statusDisp.style.color = '#f39c12';
+        chessGameOver = true;
+    } else if (chessGame.in_draw()) {
+        statusDisp.innerText = '½ Draw!';
+        statusDisp.style.color = '#f39c12';
+        chessGameOver = true;
+    } else if (chessGame.in_threefold_repetition()) {
+        statusDisp.innerText = '½ Draw by repetition!';
+        statusDisp.style.color = '#f39c12';
+        chessGameOver = true;
+    } else if (chessGame.in_check()) {
+        statusDisp.innerText = `⚠️ CHECK! ${chessGame.turn() === 'w' ? 'White (You)' : 'Black (Bot)'} must escape!`;
+        statusDisp.style.color = '#e74c3c';
     } else {
-        statusDisp.innerText = `${chessGame.turn() === 'w' ? 'White (You)' : 'Black (Bot)'} to move${chessGame.in_check() ? ' - CHECK!' : ''}`;
+        statusDisp.innerText = `${chessGame.turn() === 'w' ? 'White (You)' : 'Black (Bot)'} to move`;
+        statusDisp.style.color = 'var(--accent-yellow)';
     }
 }
