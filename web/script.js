@@ -1887,7 +1887,8 @@ function renderChessBoard() {
         for (let c = 0; c < 8; c++) {
             let square = document.createElement('div');
             let isBlack = (r + c) % 2 !== 0;
-            square.style.backgroundColor = isBlack ? '#769656' : '#eeeed2';
+            // Neon glass theme colors
+            square.style.backgroundColor = isBlack ? 'rgba(20, 30, 45, 0.7)' : 'rgba(255, 255, 255, 0.15)';
             square.style.display = 'flex';
             square.style.alignItems = 'center';
             square.style.justifyContent = 'center';
@@ -1895,30 +1896,46 @@ function renderChessBoard() {
             square.style.height = '100%';
             square.style.minHeight = '0';
             square.style.overflow = 'hidden';
-            square.style.fontSize = '2.5rem';
+            square.style.fontSize = '3rem'; // Bigger pieces
             square.style.cursor = chessGameOver ? 'default' : 'pointer';
             square.style.position = 'relative';
             square.style.boxSizing = 'border-box';
+            square.style.transition = 'all 0.2s ease';
             
             const alg = String.fromCharCode(97 + c) + (8 - r);
             square.dataset.square = alg;
             
             if (selectedSquare === alg) {
-                square.style.backgroundColor = '#baca44';
+                // Glow effect for selected piece
+                square.style.backgroundColor = 'rgba(0, 255, 255, 0.3)';
+                square.style.boxShadow = 'inset 0 0 20px rgba(0, 255, 255, 0.6)';
             }
             
             // Highlight king in check
             let piece = board[r][c];
             if (piece && piece.type === 'k' && chessGame.in_check() && piece.color === chessGame.turn()) {
-                square.style.backgroundColor = '#e74c3c';
+                square.style.backgroundColor = 'rgba(255, 0, 0, 0.5)';
+                square.style.boxShadow = 'inset 0 0 30px rgba(255, 0, 0, 0.9)';
             }
             
             if (piece) {
                 let pieceSpan = document.createElement('span');
                 pieceSpan.innerHTML = getPieceSymbol(piece.type, piece.color);
-                pieceSpan.style.color = piece.color === 'w' ? '#fff' : '#000';
-                pieceSpan.style.textShadow = piece.color === 'w' ? '0 0 2px #000' : 'none';
+                
+                // 3D pseudo-effect for pieces
+                if (piece.color === 'w') {
+                    pieceSpan.style.color = '#ffffff';
+                    pieceSpan.style.textShadow = '0px 5px 6px rgba(0,0,0,0.8), 0px -1px 2px rgba(255,255,255,0.8)';
+                } else {
+                    pieceSpan.style.color = '#000000';
+                    pieceSpan.style.textShadow = '0px 5px 6px rgba(0,0,0,0.8), 0px -1px 2px rgba(255,255,255,0.3)';
+                }
+                
                 pieceSpan.style.zIndex = '2';
+                pieceSpan.style.transition = 'transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275)';
+                if (selectedSquare === alg) {
+                    pieceSpan.style.transform = 'scale(1.15) translateY(-5px)';
+                }
                 square.appendChild(pieceSpan);
             }
             
@@ -1927,15 +1944,20 @@ function renderChessBoard() {
                 let dot = document.createElement('div');
                 dot.style.position = 'absolute';
                 if (piece) {
+                    // Capture highlight (vibrant red ring)
                     dot.style.width = '85%';
                     dot.style.height = '85%';
                     dot.style.borderRadius = '50%';
-                    dot.style.border = '4px solid rgba(0, 0, 0, 0.15)';
+                    dot.style.border = '4px solid #ff4757';
+                    dot.style.boxShadow = '0 0 15px #ff4757, inset 0 0 10px #ff4757';
+                    dot.style.backgroundColor = 'rgba(255, 71, 87, 0.2)';
                 } else {
-                    dot.style.width = '30%';
-                    dot.style.height = '30%';
+                    // Normal move dot (cyan glow)
+                    dot.style.width = '35%';
+                    dot.style.height = '35%';
                     dot.style.borderRadius = '50%';
-                    dot.style.backgroundColor = 'rgba(0, 0, 0, 0.15)';
+                    dot.style.background = 'radial-gradient(circle, var(--accent-cyan) 0%, transparent 70%)';
+                    dot.style.opacity = '0.8';
                 }
                 dot.style.zIndex = '1';
                 square.appendChild(dot);
