@@ -1874,6 +1874,11 @@ function renderChessBoard() {
     if(!chessGame) return;
     const board = chessGame.board();
     
+    let validMoves = [];
+    if (selectedSquare) {
+        validMoves = chessGame.moves({ square: selectedSquare, verbose: true }).map(m => m.to);
+    }
+    
     for (let r = 0; r < 8; r++) {
         for (let c = 0; c < 8; c++) {
             let square = document.createElement('div');
@@ -1884,6 +1889,7 @@ function renderChessBoard() {
             square.style.justifyContent = 'center';
             square.style.fontSize = '2.5rem';
             square.style.cursor = 'pointer';
+            square.style.position = 'relative'; // For absolute positioning of dots
             
             const alg = String.fromCharCode(97 + c) + (8 - r);
             square.dataset.square = alg;
@@ -1894,9 +1900,33 @@ function renderChessBoard() {
             
             let piece = board[r][c];
             if (piece) {
-                square.innerHTML = getPieceSymbol(piece.type, piece.color);
-                square.style.color = piece.color === 'w' ? '#fff' : '#000';
-                square.style.textShadow = piece.color === 'w' ? '0 0 2px #000' : 'none';
+                let pieceSpan = document.createElement('span');
+                pieceSpan.innerHTML = getPieceSymbol(piece.type, piece.color);
+                pieceSpan.style.color = piece.color === 'w' ? '#fff' : '#000';
+                pieceSpan.style.textShadow = piece.color === 'w' ? '0 0 2px #000' : 'none';
+                pieceSpan.style.zIndex = '2';
+                square.appendChild(pieceSpan);
+            }
+            
+            // Draw valid move dot/indicator
+            if (validMoves.includes(alg)) {
+                let dot = document.createElement('div');
+                dot.style.position = 'absolute';
+                if (piece) {
+                    // Capture highlight (circle outline or larger dot)
+                    dot.style.width = '85%';
+                    dot.style.height = '85%';
+                    dot.style.borderRadius = '50%';
+                    dot.style.border = '4px solid rgba(0, 0, 0, 0.15)';
+                } else {
+                    // Normal move dot
+                    dot.style.width = '30%';
+                    dot.style.height = '30%';
+                    dot.style.borderRadius = '50%';
+                    dot.style.backgroundColor = 'rgba(0, 0, 0, 0.15)';
+                }
+                dot.style.zIndex = '1';
+                square.appendChild(dot);
             }
             
             square.addEventListener('click', () => handleSquareClick(alg));
