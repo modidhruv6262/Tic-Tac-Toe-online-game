@@ -1838,7 +1838,6 @@ if (launchChess) {
     });
 }
 
-const leaveChessBtn = document.getElementById('leaveChessBtn');
 if (leaveChessBtn) {
     leaveChessBtn.addEventListener('click', () => {
         showScreen(document.getElementById('hubScreen'));
